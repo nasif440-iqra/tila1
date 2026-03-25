@@ -1,0 +1,8 @@
+node_modules/
+dist/
+.env
+*.json.key
+google-tts-key.json
+iqra-ai-*.json
+audio/generated/
+.claude/

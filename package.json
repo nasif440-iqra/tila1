@@ -1,0 +1,29 @@
+{
+  "name": "iqra-ai",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "dev:server": "node server.js",
+    "dev:all": "node server.js & vite",
+    "build": "vite build",
+    "start": "node server.js",
+    "preview": "vite preview",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@google-cloud/text-to-speech": "^6.4.0",
+    "canvas-confetti": "^1.9.4",
+    "dotenv": "^17.3.1",
+    "express": "^5.2.1",
+    "framer-motion": "^12.38.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^6.0.1",
+    "vite": "^8.0.2",
+    "vitest": "^4.1.1"
+  }
+}

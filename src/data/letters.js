@@ -1,0 +1,34 @@
+export const ARABIC_LETTERS = [
+  { id:1,  letter:"\u0627", name:"Alif", transliteration:"aa", sound:"A long 'aa' sound, like 'father'", tip:"Open your mouth wide and let the sound flow.", dots:0, dotPos:"none", visualRule:"No dots \u2014 a tall stroke", family:"alif", soundHint:"'aa' as in father" },
+  { id:2,  letter:"\u0628", name:"Ba",   transliteration:"b",  sound:"Like the English 'b' in 'ball'", tip:"Press lips together firmly, then release.", dots:1, dotPos:"below", visualRule:"1 dot below", family:"ba", soundHint:"'b' as in ball" },
+  { id:3,  letter:"\u062A", name:"Ta",   transliteration:"t",  sound:"Like the English 't' in 'top'", tip:"Touch tongue tip behind upper front teeth.", dots:2, dotPos:"above", visualRule:"2 dots above", family:"ba", soundHint:"'t' as in top" },
+  { id:4,  letter:"\u062B", name:"Tha",  transliteration:"th", sound:"Like the 'th' in 'think'", tip:"Place tongue between teeth and blow.", dots:3, dotPos:"above", visualRule:"3 dots above", family:"ba", soundHint:"'th' as in think" },
+  { id:5,  letter:"\u062C", name:"Jeem", transliteration:"j",  sound:"Like the 'j' in 'jump'", tip:"Press middle of tongue against roof of mouth.", dots:1, dotPos:"below", visualRule:"1 dot below", family:"jeem", soundHint:"'j' as in jump" },
+  { id:6,  letter:"\u062D", name:"Haa",  transliteration:"\u1E25",  sound:"A breathy 'h' from deep in the throat", tip:"Push air from the middle of your throat.", dots:0, dotPos:"none", visualRule:"No dots", family:"jeem", soundHint:"breathy 'h' from throat" },
+  { id:7,  letter:"\u062E", name:"Khaa", transliteration:"kh", sound:"Like the 'ch' in Scottish 'loch'", tip:"Raise back of tongue, let air pass with friction.", dots:1, dotPos:"above", visualRule:"1 dot above", family:"jeem", soundHint:"'kh' as in loch" },
+  { id:8,  letter:"\u062F", name:"Daal", transliteration:"d",  sound:"Like the English 'd' in 'door'", tip:"Touch tongue tip behind upper front teeth.", dots:0, dotPos:"none", visualRule:"No dots", family:"daal", soundHint:"'d' as in door" },
+  { id:9,  letter:"\u0630", name:"Dhaal",transliteration:"dh", sound:"Like the 'th' in 'this'", tip:"Place tongue between teeth, add your voice.", dots:1, dotPos:"above", visualRule:"1 dot above", family:"daal", soundHint:"'th' as in this" },
+  { id:10, letter:"\u0631", name:"Ra",   transliteration:"r",  sound:"A rolled or tapped 'r'", tip:"Tap tongue once against ridge behind upper teeth.", dots:0, dotPos:"none", visualRule:"No dots", family:"ra", soundHint:"rolled 'r'" },
+  { id:11, letter:"\u0632", name:"Zay",  transliteration:"z",  sound:"Like the English 'z' in 'zoo'", tip:"Place tongue near upper front teeth and buzz.", dots:1, dotPos:"above", visualRule:"1 dot above", family:"ra", soundHint:"'z' as in zoo" },
+  { id:12, letter:"\u0633", name:"Seen", transliteration:"s",  sound:"Like the English 's' in 'sun'", tip:"Push air through near lower teeth.", dots:0, dotPos:"none", visualRule:"No dots", family:"seen", soundHint:"'s' as in sun" },
+  { id:13, letter:"\u0634", name:"Sheen",transliteration:"sh", sound:"Like the 'sh' in 'ship'", tip:"Flatten your tongue and push air.", dots:3, dotPos:"above", visualRule:"3 dots above", family:"seen", soundHint:"'sh' as in ship" },
+  { id:14, letter:"\u0635", name:"Saad", transliteration:"\u1E63",  sound:"A heavy, emphatic 's'", tip:"Say 's' with a fuller, deeper mouth.", dots:0, dotPos:"none", visualRule:"No dots", family:"saad", soundHint:"heavy 's'" },
+  { id:15, letter:"\u0636", name:"Daad", transliteration:"\u1E0D",  sound:"A heavy, emphatic 'd'", tip:"Press tongue sides against upper molars.", dots:1, dotPos:"above", visualRule:"1 dot above", family:"saad", soundHint:"heavy 'd'" },
+  { id:16, letter:"\u0637", name:"Taa",  transliteration:"\u1E6D",  sound:"A heavy, emphatic 't'", tip:"Say 't' pressing tongue down \u2014 thick.", dots:0, dotPos:"none", visualRule:"No dots", family:"taa", soundHint:"heavy 't'" },
+  { id:17, letter:"\u0638", name:"Dhaa", transliteration:"\u1E93",  sound:"A heavy 'th' like 'that' but deeper", tip:"Like Dhaal but heavier.", dots:1, dotPos:"above", visualRule:"1 dot above", family:"taa", soundHint:"heavy 'th'" },
+  { id:18, letter:"\u0639", name:"Ain",  transliteration:"'a", sound:"A deep, guttural vowel from the throat", tip:"Squeeze the back of your throat.", dots:0, dotPos:"none", visualRule:"No dots", family:"ain", soundHint:"deep throat 'a'" },
+  { id:19, letter:"\u063A", name:"Ghain",transliteration:"gh", sound:"Like gargling gently", tip:"Like Khaa but voiced.", dots:1, dotPos:"above", visualRule:"1 dot above", family:"ain", soundHint:"gargling 'gh'" },
+  { id:20, letter:"\u0641", name:"Fa",   transliteration:"f",  sound:"Like the English 'f' in 'fan'", tip:"Bite lower lip gently and push air.", dots:1, dotPos:"above", visualRule:"1 dot above", family:"fa", soundHint:"'f' as in fan" },
+  { id:21, letter:"\u0642", name:"Qaf",  transliteration:"q",  sound:"A deep 'k' from back of throat", tip:"Touch back of tongue to uvula.", dots:2, dotPos:"above", visualRule:"2 dots above", family:"fa", soundHint:"deep 'k' from throat" },
+  { id:22, letter:"\u0643", name:"Kaf",  transliteration:"k",  sound:"Like the English 'k' in 'kite'", tip:"Normal English 'k' position.", dots:0, dotPos:"none", visualRule:"No dots", family:"kaf", soundHint:"'k' as in kite" },
+  { id:23, letter:"\u0644", name:"Lam",  transliteration:"l",  sound:"Like the English 'l' in 'lamp'", tip:"Touch tongue to ridge behind upper teeth.", dots:0, dotPos:"none", visualRule:"No dots", family:"lam", soundHint:"'l' as in lamp" },
+  { id:24, letter:"\u0645", name:"Meem", transliteration:"m",  sound:"Like the English 'm' in 'moon'", tip:"Close your lips and hum.", dots:0, dotPos:"none", visualRule:"No dots", family:"meem", soundHint:"'m' as in moon" },
+  { id:25, letter:"\u0646", name:"Noon", transliteration:"n",  sound:"Like the English 'n' in 'noon'", tip:"Touch tongue to ridge and hum through nose.", dots:1, dotPos:"above", visualRule:"1 dot above", family:"noon", soundHint:"'n' as in noon" },
+  { id:26, letter:"\u0647", name:"Ha",   transliteration:"h",  sound:"A light 'h' like a gentle exhale", tip:"Breathe out gently.", dots:0, dotPos:"none", visualRule:"No dots", family:"ha", soundHint:"light 'h' exhale" },
+  { id:27, letter:"\u0648", name:"Waw",  transliteration:"w",  sound:"Like the English 'w' in 'water'", tip:"Round your lips into an 'oo' shape.", dots:0, dotPos:"none", visualRule:"No dots", family:"waw", soundHint:"'w' as in water" },
+  { id:28, letter:"\u064A", name:"Ya",   transliteration:"y",  sound:"Like the English 'y' in 'yes'", tip:"Raise the middle of your tongue.", dots:2, dotPos:"below", visualRule:"2 dots below", family:"ya", soundHint:"'y' as in yes" },
+];
+
+export function getLetter(id) {
+  return ARABIC_LETTERS.find(l => l.id === id);
+}

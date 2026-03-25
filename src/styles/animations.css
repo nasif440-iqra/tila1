@@ -1,0 +1,126 @@
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.85); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes pop {
+  0% { transform: scale(0.8); opacity: 0; }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-6px); }
+  40%, 80% { transform: translateX(6px); }
+}
+
+@keyframes confetti1 {
+  0% { transform: translate(0, 0) rotate(0); opacity: 1; }
+  100% { transform: translate(40px, -80px) rotate(360deg); opacity: 0; }
+}
+
+@keyframes confetti2 {
+  0% { transform: translate(0, 0) rotate(0); opacity: 1; }
+  100% { transform: translate(-35px, -90px) rotate(-300deg); opacity: 0; }
+}
+
+@keyframes confetti3 {
+  0% { transform: translate(0, 0) rotate(0); opacity: 1; }
+  100% { transform: translate(50px, -60px) rotate(200deg); opacity: 0; }
+}
+
+@keyframes streakBounce {
+  0% { transform: scale(0.5); opacity: 0; }
+  60% { transform: scale(1.2); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes glowPulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(22, 51, 35, 0.15); }
+  50% { box-shadow: 0 0 0 12px rgba(22, 51, 35, 0); }
+}
+
+@keyframes recording {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(22, 51, 35, 0.35); }
+  50% { box-shadow: 0 0 0 18px rgba(22, 51, 35, 0); }
+}
+
+@keyframes scoreReveal {
+  0% { transform: scale(0.5); opacity: 0; }
+  60% { transform: scale(1.15); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes gentleFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+@keyframes softReveal {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes noorBreath {
+  0%, 100% { opacity: 0.35; transform: scale(1); }
+  50% { opacity: 0.65; transform: scale(1.08); }
+}
+
+@keyframes noorReveal {
+  0% { opacity: 0; transform: scale(0.6); }
+  60% { opacity: 0.8; transform: scale(1.05); }
+  100% { opacity: 0.55; transform: scale(1); }
+}
+
+@keyframes shimmer {
+  0% { background-position: 200% center; }
+  100% { background-position: -200% center; }
+}
+
+@keyframes subtleLift {
+  0% { opacity: 0; transform: translateY(8px) scale(0.97); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes numberReveal {
+  0% { opacity: 0; transform: translateY(6px) scale(0.85); }
+  50% { transform: translateY(-2px) scale(1.05); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes correctGlow {
+  0% { box-shadow: 0 0 0 0 rgba(22, 51, 35, 0.25); }
+  50% { box-shadow: 0 0 16px 4px rgba(22, 51, 35, 0.10); }
+  100% { box-shadow: 0 0 0 0 rgba(22, 51, 35, 0); }
+}
+
+@keyframes settledCheck {
+  0% { transform: scale(0); opacity: 0; }
+  60% { transform: scale(1.15); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes unlockReveal {
+  0% { opacity: 0; transform: scale(0.7) rotate(-10deg); }
+  60% { transform: scale(1.08) rotate(2deg); }
+  100% { opacity: 1; transform: scale(1) rotate(0deg); }
+}
+
+@keyframes recapSlide {
+  0% { opacity: 0; transform: translateX(-12px); }
+  100% { opacity: 1; transform: translateX(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
