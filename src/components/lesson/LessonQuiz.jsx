@@ -1,20 +1,56 @@
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Icons } from "../Icons.jsx";
 import { getLetter } from "../../data/letters.js";
 import { playGeneratedArabicAudio } from "../../lib/tts.js";
 import { playLetterAudio } from "../../lib/audio.js";
+import StreakBanner from "./StreakBanner.jsx";
 
 export default function LessonQuiz({
   currentQ, qIndex, originalQCount, progressPct,
   selected, isCorrect, answered, feedbackMsg, wrongExplanation,
-  streak, showStreakPop, streakMsg,
+  streak, bannerStreak,
   isHarakatLesson, isContrast, isSoundQ, audioType,
   onSelect, onNext, onBack, playQuestionAudio,
 }) {
+  const [showTint, setShowTint] = useState(false);
+
+  useEffect(() => {
+    if (bannerStreak !== null) {
+      setShowTint(true);
+      const t = setTimeout(() => setShowTint(false), 800);
+      return () => clearTimeout(t);
+    }
+  }, [bannerStreak]);
   if (!currentQ) return null;
 
   return (
     <div className="screen" style={{ background: "var(--c-bg)", justifyContent: "space-between" }}>
+      {/* Streak banner */}
+      <AnimatePresence>
+        {bannerStreak !== null && (
+          <StreakBanner key={bannerStreak} streak={bannerStreak} />
+        )}
+      </AnimatePresence>
+
+      {/* Gold tint on streak milestone */}
+      <AnimatePresence>
+        {showTint && (
+          <motion.div
+            key="streak-tint"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
+            style={{
+              position: "fixed", inset: 0,
+              background: "rgba(196,164,100,0.06)",
+              pointerEvents: "none", zIndex: 50,
+            }}
+          />
+        )}
+      </AnimatePresence>
+
       {/* Wrong answer screen flash */}
       <AnimatePresence>
         {answered && !isCorrect && (
@@ -44,34 +80,6 @@ export default function LessonQuiz({
           </div>
           <span style={{ fontSize: 13, fontWeight: 700, color: "var(--c-text-soft)", minWidth: 40, textAlign: "right" }}>{Math.min(qIndex + 1, originalQCount)}/{originalQCount}</span>
         </div>
-        {streak >= 3 && (
-          <div style={{ display: "flex", justifyContent: "center", marginBottom: 8 }}>
-            <motion.div
-              key={`streak-pill-${streak}`}
-              initial={{ scale: 0.85 }}
-              animate={{ scale: [0.85, 1.08, 1] }}
-              transition={{ duration: 0.4, ease: "easeOut" }}
-              style={{
-                background: "var(--c-accent-light)", color: "var(--c-accent)",
-                padding: "5px 16px", borderRadius: 20, fontSize: 13, fontWeight: 700,
-                display: "inline-flex", alignItems: "center", gap: 6,
-                boxShadow: "0 2px 8px rgba(196,164,100,0.12)",
-              }}
-            >
-              <motion.span
-                key={streak}
-                initial={{ scale: 0.4, rotate: -12, opacity: 0 }}
-                animate={{ scale: 1, rotate: 0, opacity: 1 }}
-                transition={{ type: "spring", stiffness: 600, damping: 16 }}
-                style={{ display: "inline-block", minWidth: 14, textAlign: "center" }}
-              >
-                {streak}
-              </motion.span>
-              <span style={{ opacity: 0.8 }}>in a row</span>
-              <span>{"\uD83D\uDD25"}</span>
-            </motion.div>
-          </div>
-        )}
       </div>
 
       <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center" }}>

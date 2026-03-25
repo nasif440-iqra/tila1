@@ -1,14 +1,12 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { LESSONS } from "../../data/lessons.js";
 import { getLetter } from "../../data/letters.js";
-import { sfxTap, sfxCorrect, sfxWrong, sfxStreak, sfxRecord, sfxComplete, sfxTransition, playLetterAudio } from "../../lib/audio.js";
+import { sfxTap, sfxCorrect, sfxWrong, sfxStreak, sfxRecord, sfxComplete, sfxTransition, playLetterAudio, sfxStreakTier1, sfxStreakTier2, sfxStreakTier3 } from "../../lib/audio.js";
 import { playGeneratedArabicAudio } from "../../lib/tts.js";
 import { generateLessonQuestions, getWrongExplanation, getContrastExplanation, getHarakatWrongExplanation, pickRandom, shuffle } from "../../lib/questions/index.js";
 import { getCombo, generateHarakatCombos } from "../../data/harakat.js";
 import { pickCopy, getCorrectPool, STREAK_COPY, MID_CELEBRATE_COPY, WRONG_ENCOURAGEMENT } from "../../lib/engagement.js";
 
-import { AnimatePresence } from "framer-motion";
-import StreakBurst from "./StreakBurst.jsx";
 import LessonIntro from "./LessonIntro.jsx";
 import LessonQuiz from "./LessonQuiz.jsx";
 import LessonMidCelebrate from "./LessonMidCelebrate.jsx";
@@ -40,8 +38,6 @@ export default function LessonScreen({ lessonId, lessonOverride, progress, compl
   const [selected, setSelected] = useState(null);
   const [quizResults, setQuizResults] = useState([]);
   const [streak, setStreak] = useState(0);
-  const [showStreakPop, setShowStreakPop] = useState(false);
-  const [streakMsg, setStreakMsg] = useState("");
   const [wrongExplanation, setWrongExplanation] = useState(null);
   const [originalQCount, setOriginalQCount] = useState(0);
   const [midPoint, setMidPoint] = useState(-1);
@@ -49,8 +45,12 @@ export default function LessonScreen({ lessonId, lessonOverride, progress, compl
   const [speakIndex, setSpeakIndex] = useState(0);
   const [speakPhase, setSpeakPhase] = useState("ready");
   const [speakResults, setSpeakResults] = useState([]);
-  const [showStreakBurst, setShowStreakBurst] = useState(false);
-  const [burstStreak, setBurstStreak] = useState(0);
+  const [bannerStreak, setBannerStreak] = useState(null);
+  const bannerTimeoutRef = useRef(null);
+
+  useEffect(() => {
+    return () => { if (bannerTimeoutRef.current) clearTimeout(bannerTimeoutRef.current); };
+  }, []);
 
   useEffect(() => {
     if (phase === "quiz" && questions.length === 0) {
@@ -79,13 +79,13 @@ export default function LessonScreen({ lessonId, lessonOverride, progress, compl
     if (correct) {
       sfxCorrect(); setWrongExplanation(null);
       const ns = streak + 1; setStreak(ns);
-      if (ns > 0 && ns % 3 === 0) {
-        sfxStreak(); setShowStreakPop(true); setStreakMsg(pickRandom(isHarakatLesson ? STREAK_COPY.harakat : STREAK_COPY.default));
-        setTimeout(() => setShowStreakPop(false), 1200);
-      }
       if ([3, 5, 7].includes(ns)) {
-        setShowStreakBurst(true);
-        setBurstStreak(ns);
+        if (ns === 3) sfxStreakTier1();
+        else if (ns === 5) sfxStreakTier2();
+        else sfxStreakTier3();
+        if (bannerTimeoutRef.current) clearTimeout(bannerTimeoutRef.current);
+        setBannerStreak(ns);
+        bannerTimeoutRef.current = setTimeout(() => setBannerStreak(null), 2000);
       }
     } else {
       sfxWrong(); setStreak(0);
@@ -129,7 +129,7 @@ export default function LessonScreen({ lessonId, lessonOverride, progress, compl
     }
   }, [qIndex, phase]);
 
-  useEffect(() => { if (answered && isCorrect && !showStreakBurst) { const t = setTimeout(handleQuizNext, 850); return () => clearTimeout(t); } }, [answered, isCorrect, showStreakBurst]);
+  useEffect(() => { if (answered && isCorrect) { const t = setTimeout(handleQuizNext, 850); return () => clearTimeout(t); } }, [answered, isCorrect]);
   useEffect(() => { if (phase === "midCelebrate") { const t = setTimeout(handleMidContinue, 1400); return () => clearTimeout(t); } }, [phase]);
 
   const currentSpeakLetter = teachLetters[speakIndex];
@@ -168,11 +168,6 @@ export default function LessonScreen({ lessonId, lessonOverride, progress, compl
   const feedbackMsg = answered ? (isCorrect ? (isFirstCorrect ? "You're already learning this" : currentQ.isHarakat ? pickRandom(HARAKAT_CORRECT) : isSoundQ ? pickRandom(SOUND_CORRECT) : pickRandom(CORRECT_MESSAGES)) : wrongExplanation) : null;
 
   return (
-    <>
-      <LessonQuiz currentQ={currentQ} qIndex={qIndex} originalQCount={originalQCount} progressPct={progressPct} selected={selected} isCorrect={isCorrect} answered={answered} feedbackMsg={feedbackMsg} wrongExplanation={wrongExplanation} streak={streak} showStreakPop={showStreakPop} streakMsg={streakMsg} isHarakatLesson={isHarakatLesson} isContrast={isContrast} isSoundQ={isSoundQ} audioType={audioType} onSelect={handleSelect} onNext={handleQuizNext} onBack={onBack} playQuestionAudio={playQuestionAudio} />
-      <AnimatePresence>
-        {showStreakBurst && <StreakBurst streak={burstStreak} onDismiss={() => setShowStreakBurst(false)} />}
-      </AnimatePresence>
-    </>
+    <LessonQuiz currentQ={currentQ} qIndex={qIndex} originalQCount={originalQCount} progressPct={progressPct} selected={selected} isCorrect={isCorrect} answered={answered} feedbackMsg={feedbackMsg} wrongExplanation={wrongExplanation} streak={streak} bannerStreak={bannerStreak} isHarakatLesson={isHarakatLesson} isContrast={isContrast} isSoundQ={isSoundQ} audioType={audioType} onSelect={handleSelect} onNext={handleQuizNext} onBack={onBack} playQuestionAudio={playQuestionAudio} />
   );
 }
