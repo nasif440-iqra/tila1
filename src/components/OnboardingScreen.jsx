@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { playLetterAudio, sfxTap, sfxCorrect, sfxWrong } from "../lib/audio.js";
+import { playLetterAudio, sfxTap, sfxCorrect, sfxWrong, sfxOnboardingAdvance, sfxOnboardingComplete } from "../lib/audio.js";
 
 const intentionOptions = [
   "I want to read the Quran confidently",
@@ -61,6 +61,7 @@ export default function OnboardingScreen({ onComplete }) {
   };
 
   const handleFinish = () => {
+    sfxOnboardingComplete();
     setIsTransitioning(true);
     localStorage.setItem("hasCompletedOnboarding", "true");
     setTimeout(() => {
@@ -79,7 +80,7 @@ export default function OnboardingScreen({ onComplete }) {
               Every strong reader starts with a first letter. You're not behind — you're beginning.
             </p>
             <div style={styles.actions}>
-              <button className="btn btn-primary" onClick={() => { sfxTap(); goNext(); }}>
+              <button className="btn btn-primary" onClick={() => { sfxOnboardingAdvance(); goNext(); }}>
                 Continue
               </button>
             </div>
@@ -95,7 +96,7 @@ export default function OnboardingScreen({ onComplete }) {
               Even a few focused minutes each day can grow into something meaningful.
             </p>
             <div style={styles.actions}>
-              <button className="btn btn-primary" onClick={() => { sfxTap(); goNext(); }}>
+              <button className="btn btn-primary" onClick={() => { sfxOnboardingAdvance(); goNext(); }}>
                 Continue
               </button>
             </div>
@@ -130,7 +131,7 @@ export default function OnboardingScreen({ onComplete }) {
                 disabled={!selectedIntention}
                 style={!selectedIntention ? styles.btnDisabled : {}}
                 onClick={() => {
-                  sfxTap();
+                  sfxOnboardingAdvance();
                   localStorage.setItem("onboardingIntention", selectedIntention);
                   goNext();
                 }}
@@ -169,7 +170,7 @@ export default function OnboardingScreen({ onComplete }) {
                 disabled={!selectedGoal}
                 style={!selectedGoal ? styles.btnDisabled : {}}
                 onClick={() => {
-                  sfxTap();
+                  sfxOnboardingAdvance();
                   localStorage.setItem("onboardingDailyGoal", selectedGoal);
                   goNext();
                 }}
@@ -244,7 +245,7 @@ export default function OnboardingScreen({ onComplete }) {
                   Check answer
                 </button>
               ) : (
-                <button className="btn btn-primary" onClick={() => { sfxTap(); goNext(); }}>
+                <button className="btn btn-primary" onClick={() => { sfxOnboardingAdvance(); goNext(); }}>
                   Continue
                 </button>
               )}

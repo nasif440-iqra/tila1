@@ -3,7 +3,7 @@ import confetti from "canvas-confetti";
 import { useMotionValue, animate } from "framer-motion";
 import { LESSONS } from "../../data/lessons.js";
 import { getLetter } from "../../data/letters.js";
-import { sfxTap, sfxComplete } from "../../lib/audio.js";
+import { sfxTap, sfxComplete, sfxCompletePerfect } from "../../lib/audio.js";
 import { Icons } from "../Icons.jsx";
 import { pickCopy, getCompletionTier, getLessonRecap, COMPLETION_HEADLINES, COMPLETION_SUBLINES, CLOSING_QUOTES } from "../../lib/engagement.js";
 
@@ -17,6 +17,12 @@ export default function LessonSummary({ lesson, lessonId, teachLetters, lessonCo
   // Animated accuracy counter
   const motionPct = useMotionValue(0);
   const [displayPct, setDisplayPct] = useState(0);
+
+  useEffect(() => {
+    // Play completion sound on mount
+    if (qP === 100) sfxCompletePerfect();
+    else if (qP >= 60) sfxComplete();
+  }, []);
 
   useEffect(() => {
     const unsubscribe = motionPct.on("change", v => setDisplayPct(Math.round(v)));
@@ -135,7 +141,7 @@ export default function LessonSummary({ lesson, lessonId, teachLetters, lessonCo
         </p>
 
         <div style={{ width: "100%", display: "flex", flexDirection: "column", gap: 10, marginTop: 24, animation: "subtleLift 0.4s ease 0.4s both" }}>
-          <button className="btn btn-primary" onClick={() => { sfxTap(); sfxComplete(); onComplete(lessonId, quizResults, speakResults); }} style={{ position: "relative", overflow: "hidden" }}>
+          <button className="btn btn-primary" onClick={() => { sfxTap(); onComplete(lessonId, quizResults, speakResults); }} style={{ position: "relative", overflow: "hidden" }}>
             <span>Continue</span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginLeft: 6 }}><path d="M5 12h14m-7-7l7 7-7 7" /></svg>
           </button>
           <button className="btn btn-ghost" onClick={() => { sfxTap(); onBack(); }}>Back to Home</button>
@@ -205,7 +211,7 @@ export default function LessonSummary({ lesson, lessonId, teachLetters, lessonCo
 
       <div style={{ marginBottom: 12, animation: "subtleLift 0.4s ease 0.35s both" }}><p style={{ fontSize: 13, lineHeight: 1.7, color: "var(--c-text-soft)", fontStyle: "italic", maxWidth: 280, margin: "0 auto" }}>"{CLOSING_QUOTES[lesson.id % CLOSING_QUOTES.length]}"</p></div>
       <div style={{ width: "100%", display: "flex", flexDirection: "column", gap: 10, animation: "subtleLift 0.4s ease 0.4s both" }}>
-        <button className="btn btn-primary" onClick={() => { sfxTap(); sfxComplete(); onComplete(lessonId, quizResults, speakResults); }} style={{ position: "relative", overflow: "hidden" }}>
+        <button className="btn btn-primary" onClick={() => { sfxTap(); onComplete(lessonId, quizResults, speakResults); }} style={{ position: "relative", overflow: "hidden" }}>
           {next ? <><span>Continue</span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginLeft: 6 }}><path d="M5 12h14m-7-7l7 7-7 7" /></svg></> : "Finish"}
         </button>
         <button className="btn btn-ghost" onClick={() => { sfxTap(); onBack(); }}>Back to Home</button>

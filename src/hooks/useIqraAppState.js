@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import { LESSONS } from "../data/lessons.js";
 import { loadProgress, saveProgress, recalculateWirdOnAppOpen, recordPractice, getTodayDateString, getDayDifference, getCompletedPhaseIntercept, updateLetterSRS } from "../lib/progress.js";
+import { sfxWirdMilestone } from "../lib/audio.js";
 
 export default function useIqraAppState() {
   // Load and normalize progress on mount
@@ -119,7 +120,13 @@ export default function useIqraAppState() {
     if (typeof lessonId === "number") {
       setLastCompletedLesson(LESSONS.find(l => l.id === lessonId));
     }
-    setWirdState(prev => recordPractice(prev));
+    setWirdState(prev => {
+      const next = recordPractice(prev);
+      if (next.currentWird > prev.currentWird) {
+        sfxWirdMilestone();
+      }
+      return next;
+    });
 
     return hasPhaseIntercept;
   }, []);

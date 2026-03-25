@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, useRef } from "react";
 import useIqraAppState from "./hooks/useIqraAppState.js";
 import OnboardingScreen from "./components/OnboardingScreen.jsx";
 import HomeScreen from "./components/HomeScreen.jsx";
@@ -9,6 +9,7 @@ import ReturnHadithScreen from "./components/ReturnHadithScreen.jsx";
 import { Icons } from "./components/Icons.jsx";
 import { getDueLetters, getCurrentPhase } from "./lib/selectors.js";
 import { getTodayDateString } from "./lib/progress.js";
+import { unlockAudio, sfxTransition } from "./lib/audio.js";
 
 export default function App() {
   const {
@@ -32,13 +33,21 @@ export default function App() {
   const [activeTab, setActiveTab] = useState("home");
   const [currentLessonId, setCurrentLessonId] = useState(null);
 
+  const hasUnlocked = useRef(false);
+  const handleFirstTouch = () => {
+    if (!hasUnlocked.current) {
+      unlockAudio();
+      hasUnlocked.current = true;
+    }
+  };
+
   const handleOnboard = useCallback(() => {
     localStorage.setItem("hasCompletedOnboarding", "true");
     setHasCompletedOnboarding(true);
   }, []);
 
-  const handleStartLesson = useCallback((id) => { setCurrentLessonId(id); setScreen("lesson"); }, []);
-  const handleGoHome = useCallback(() => { setScreen("home"); setActiveTab("home"); }, []);
+  const handleStartLesson = useCallback((id) => { sfxTransition(); setCurrentLessonId(id); setScreen("lesson"); }, []);
+  const handleGoHome = useCallback(() => { sfxTransition(); setScreen("home"); setActiveTab("home"); }, []);
 
   const handleLessonComplete = useCallback((lessonId, quizResults, speakResults) => {
     const hasPhaseIntercept = onLessonComplete(lessonId, quizResults, speakResults);
@@ -62,9 +71,9 @@ export default function App() {
     setActiveTab("home");
   }, [onPhaseCompleteContinue]);
 
-  if (!hasCompletedOnboarding) return (<div className="app-shell"><OnboardingScreen onComplete={handleOnboard} /></div>);
+  if (!hasCompletedOnboarding) return (<div className="app-shell" onClick={handleFirstTouch}><OnboardingScreen onComplete={handleOnboard} /></div>);
   return (
-    <div className="app-shell">
+    <div className="app-shell" onClick={handleFirstTouch}>
       {screen === "returnHadith" && <ReturnHadithScreen onContinue={handleDismissHadith} />}
       {screen === "phaseComplete" && phaseCompleteData && <PhaseCompleteScreen phase={phaseCompleteData} nextPhase={phaseCompleteData.nextPhase} onContinue={handlePhaseCompleteContinue} wird={wirdState.currentWird} />}
       {screen === "home" && <HomeScreen progress={progress} completedLessonIds={completedLessonIds} lessonsCompleted={lessonsCompleted} lastCompletedLesson={lastCompletedLesson} onStartLesson={handleStartLesson} currentWird={wirdState.currentWird} todayLessonCount={wirdState.todayLessonCount} />}

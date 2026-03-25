@@ -1,8 +1,10 @@
 import { useEffect } from "react";
 import confetti from "canvas-confetti";
+import { sfxPhaseComplete } from "../lib/audio.js";
 
 export default function PhaseCompleteScreen({ phase, nextPhase, onContinue, wird }) {
   useEffect(() => {
+    sfxPhaseComplete();
     confetti({
       particleCount: 80,
       spread: 100,

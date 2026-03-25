@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { LESSONS } from "../../data/lessons.js";
 import { getLetter } from "../../data/letters.js";
-import { sfxTap, sfxCorrect, sfxWrong, sfxStreak, sfxRecord, sfxComplete, sfxTransition, playLetterAudio, sfxStreakTier1, sfxStreakTier2, sfxStreakTier3 } from "../../lib/audio.js";
+import { sfxTap, sfxCorrect, sfxWrong, sfxComplete, sfxTransition, playLetterAudio, sfxStreakTier1, sfxStreakTier2, sfxStreakTier3 } from "../../lib/audio.js";
 import { playGeneratedArabicAudio } from "../../lib/tts.js";
 import { generateLessonQuestions, getWrongExplanation, getContrastExplanation, getHarakatWrongExplanation, pickRandom, shuffle } from "../../lib/questions/index.js";
 import { getCombo, generateHarakatCombos } from "../../data/harakat.js";
@@ -134,7 +134,7 @@ export default function LessonScreen({ lessonId, lessonOverride, progress, compl
 
   const currentSpeakLetter = teachLetters[speakIndex];
   const handleRecord = () => {
-    sfxRecord(); setSpeakPhase("recording");
+    sfxTap(); setSpeakPhase("recording");
     setTimeout(() => {
       setSpeakPhase("done");
       setSpeakResults(prev => [...prev, { letterId: currentSpeakLetter.id }]);

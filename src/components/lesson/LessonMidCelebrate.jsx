@@ -1,8 +1,13 @@
+import { useEffect } from "react";
 import { Icons } from "../Icons.jsx";
 import { pickCopy } from "../../lib/engagement.js";
 import { MID_CELEBRATE_COPY } from "../../lib/engagement.js";
+import { sfxMidLesson } from "../../lib/audio.js";
 
 export default function LessonMidCelebrate({ isHarakatLesson, correctCount, onContinue }) {
+  useEffect(() => {
+    sfxMidLesson();
+  }, []);
   const midMsg = pickCopy(isHarakatLesson ? MID_CELEBRATE_COPY.harakat : MID_CELEBRATE_COPY.default);
   return (
     <div className="screen" style={{ background: "var(--c-bg)", justifyContent: "center", alignItems: "center", textAlign: "center", position: "relative" }} onClick={onContinue}>

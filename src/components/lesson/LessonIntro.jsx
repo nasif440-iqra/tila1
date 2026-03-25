@@ -1,7 +1,6 @@
 import { motion } from "framer-motion";
 import { Icons } from "../Icons.jsx";
-import { sfxTap } from "../../lib/audio.js";
-import { playLetterAudio } from "../../lib/audio.js";
+import { sfxTap, sfxLessonStart, playLetterAudio } from "../../lib/audio.js";
 import { playGeneratedArabicAudio } from "../../lib/tts.js";
 import { getHarakah } from "../../data/harakat.js";
 
@@ -48,7 +47,7 @@ export default function LessonIntro({ lesson, teachLetters, lessonCombos, isSoun
           {lesson.familyRule && <p style={{ fontSize: 13, color: "var(--c-text-soft)", lineHeight: 1.5, maxWidth: 300, textAlign: "center", marginTop: 8 }}>{lesson.familyRule}</p>}
         </div>
         <div style={{ paddingBottom: 24 }}>
-          <button className="btn btn-primary" onClick={() => { sfxTap(); onStartQuiz(); }}>{"Let\u2019s practice"}</button>
+          <button className="btn btn-primary" onClick={() => { sfxLessonStart(); onStartQuiz(); }}>{"Let\u2019s practice"}</button>
         </div>
       </div>
     );
@@ -78,7 +77,7 @@ export default function LessonIntro({ lesson, teachLetters, lessonCombos, isSoun
           {lesson.familyRule && <p style={{ fontSize: 13, color: "var(--c-text-soft)", lineHeight: 1.5, maxWidth: 300, textAlign: "center", marginTop: 4 }}>{lesson.familyRule}</p>}
         </div>
         <div style={{ paddingBottom: 24 }}>
-          <button className="btn btn-primary" onClick={() => { sfxTap(); onStartQuiz(); }}>{"Let\u2019s practice"}</button>
+          <button className="btn btn-primary" onClick={() => { sfxLessonStart(); onStartQuiz(); }}>{"Let\u2019s practice"}</button>
         </div>
       </div>
     );
@@ -113,7 +112,7 @@ export default function LessonIntro({ lesson, teachLetters, lessonCombos, isSoun
         </div>
       </div>
       <div style={{ paddingBottom: 24 }}>
-        <button className="btn btn-primary" onClick={() => { sfxTap(); onStartQuiz(); }}>{isContrast ? "Start comparing" : isSound ? "Start listening" : "Let's practice"}</button>
+        <button className="btn btn-primary" onClick={() => { sfxLessonStart(); onStartQuiz(); }}>{isContrast ? "Start comparing" : isSound ? "Start listening" : "Let's practice"}</button>
       </div>
     </div>
   );

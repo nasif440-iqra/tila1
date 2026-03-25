@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import { LESSONS } from "../data/lessons.js";
 import { getLetter } from "../data/letters.js";
-import { sfxTap } from "../lib/audio.js";
+import { sfxTap, sfxNodeTap, sfxLessonStart } from "../lib/audio.js";
 import { Icons } from "./Icons.jsx";
 import { pickCopy, CONTINUATION_COPY } from "../lib/engagement.js";
 import { getPhaseMomentumCopy, isLessonUnlocked } from "../lib/progress.js";
@@ -126,7 +126,7 @@ export default function HomeScreen({ progress, completedLessonIds, lessonsComple
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.97 }}
                   transition={{ type: "spring", stiffness: 400, damping: 25 }}
-                  onClick={() => { sfxTap(); onStartLesson(currentLesson.id); }} style={{
+                  onClick={() => { sfxLessonStart(); onStartLesson(currentLesson.id); }} style={{
                   width: "100%", background: "var(--c-primary)", color: "white",
                   borderRadius: 16, padding: "16px 24px", border: "none",
                   fontFamily: "var(--font-body)", fontSize: 16, fontWeight: 600,
@@ -156,7 +156,7 @@ export default function HomeScreen({ progress, completedLessonIds, lessonsComple
                 <p style={{ fontSize: 12, color: "var(--c-text-muted)", margin: "2px 0 0" }}>{dueLetters.length} letter{dueLetters.length !== 1 ? "s" : ""} ready for practice</p>
               </div>
               <button
-                onClick={() => { sfxTap(); onStartLesson("review"); }}
+                onClick={() => { sfxNodeTap(); onStartLesson("review"); }}
                 style={{
                   background: "transparent", color: "var(--c-primary)",
                   borderRadius: 12, padding: "10px 16px", border: "1.5px solid var(--c-primary)",
@@ -235,7 +235,7 @@ export default function HomeScreen({ progress, completedLessonIds, lessonsComple
 
                   {/* node row */}
                   <div
-                    onClick={() => { if (!locked) { sfxTap(); onStartLesson(lesson.id); } }}
+                    onClick={() => { if (!locked) { sfxNodeTap(); onStartLesson(lesson.id); } }}
                     style={{
                       display: "flex", alignItems: "center", gap: 20,
                       transform: `translateX(${offset}px)`,
