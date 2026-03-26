@@ -8,6 +8,70 @@ import { getPhaseMomentumCopy, isLessonUnlocked } from "../lib/progress.js";
 import { getCurrentUnlockedLesson, getLearnedLetterIds, getPhaseCounts, getDueLetters, planReviewSession } from "../lib/selectors.js";
 import { getTodayDateString } from "../lib/progress.js";
 
+/* ── Review card component ── */
+function ReviewCard({ reviewPlan, dueLetters, isUrgent, onStart }) {
+  const itemCount = reviewPlan?.totalItems || dueLetters.length;
+  const hasUnstable = reviewPlan?.unstable?.length > 0;
+  const hasConfused = reviewPlan?.confused?.length > 0;
+
+  const headline = isUrgent ? "Strengthen your letters" : "Review ready";
+  const subtitle = hasUnstable
+    ? "Some letters need more practice before you move on."
+    : hasConfused
+    ? "Practice the letters you\u2019ve been mixing up."
+    : itemCount >= 4
+    ? "Keep your letters solid \u2014 a few minutes will help."
+    : `${itemCount} letter${itemCount !== 1 ? "s" : ""} to revisit.`;
+
+  return (
+    <div className="fade-up" style={{ marginBottom: 20, animationDelay: "0.12s" }}>
+      <div style={{
+        background: isUrgent ? "var(--c-accent-light)" : "var(--c-bg-card)",
+        borderRadius: 20,
+        padding: isUrgent ? "20px 20px" : "16px 20px",
+        boxShadow: isUrgent ? "0 4px 20px rgba(196,164,100,0.12)" : "0 4px 16px rgba(22,51,35,0.04)",
+        border: isUrgent ? "1.5px solid var(--c-accent)" : "1px solid var(--c-border)",
+      }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: isUrgent ? 14 : 0 }}>
+          <div style={{
+            width: 40, height: 40, borderRadius: "50%",
+            background: isUrgent ? "var(--c-accent)" : "var(--c-primary-soft)",
+            display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
+          }}>
+            <span style={{ fontSize: 18, lineHeight: 1, color: isUrgent ? "white" : "var(--c-primary)" }}>{"\u263D"}</span>
+          </div>
+          <div style={{ flex: 1 }}>
+            <p style={{ fontFamily: "var(--font-heading)", fontSize: 15, fontWeight: 600, color: "var(--c-text)", margin: 0 }}>{headline}</p>
+            <p style={{ fontSize: 12, color: "var(--c-text-muted)", margin: "3px 0 0", lineHeight: 1.4 }}>{subtitle}</p>
+          </div>
+          {!isUrgent && (
+            <button
+              onClick={onStart}
+              style={{
+                background: "transparent", color: "var(--c-primary)",
+                borderRadius: 12, padding: "10px 16px", border: "1.5px solid var(--c-primary)",
+                fontFamily: "var(--font-body)", fontSize: 13, fontWeight: 600,
+                cursor: "pointer", transition: "all 0.2s", whiteSpace: "nowrap",
+              }}
+            >
+              Review
+            </button>
+          )}
+        </div>
+        {isUrgent && (
+          <button
+            onClick={onStart}
+            className="btn btn-primary"
+            style={{ width: "100%", fontSize: 14, padding: "14px 20px" }}
+          >
+            Start review
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
 /* ── serpentine x-offsets that repeat every 6 nodes ── */
 const OFFSETS = [4, 16, 8, -4, -12, 0];
 
@@ -41,6 +105,8 @@ export default function HomeScreen({ progress, mastery, completedLessonIds, less
   const today = getTodayDateString();
   const dueLetters = getDueLetters(progress, today);
   const reviewPlan = mastery ? planReviewSession(mastery, today) : null;
+  const hasReview = reviewPlan?.hasReviewWork || dueLetters.length > 0;
+  const reviewIsUrgent = reviewPlan?.isUrgent || false;
 
   /* ── Zeigarnik momentum copy ── */
   const momentumCopy = getPhaseMomentumCopy(completedLessonIds);
@@ -127,6 +193,9 @@ export default function HomeScreen({ progress, mastery, completedLessonIds, less
           })()}
         </div>
 
+        {/* ── Urgent Review (above hero when review should take priority) ── */}
+        {hasReview && reviewIsUrgent && <ReviewCard reviewPlan={reviewPlan} dueLetters={dueLetters} isUrgent={true} onStart={() => { sfxNodeTap(); onStartLesson("review"); }} />}
+
         {/* ── Hero Card ── */}
         {!allDone && (
           <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ type: "spring", stiffness: 280, damping: 26, delay: 0.15 }} style={{ marginBottom: 40 }}>
@@ -190,45 +259,8 @@ export default function HomeScreen({ progress, mastery, completedLessonIds, less
           </motion.div>
         )}
 
-        {/* ── Smart Review Card ── */}
-        {(reviewPlan?.hasReviewWork || dueLetters.length > 0) && (() => {
-          const itemCount = reviewPlan?.totalItems || dueLetters.length;
-          const hasWeak = reviewPlan?.weak?.length > 0;
-          const hasConfused = reviewPlan?.confused?.length > 0;
-          const subtitle = hasWeak && hasConfused
-            ? `${itemCount} items — includes weak & confused letters`
-            : hasWeak
-            ? `${itemCount} items — some letters need extra practice`
-            : hasConfused
-            ? `${itemCount} items — practicing tricky pairs`
-            : `${itemCount} letter${itemCount !== 1 ? "s" : ""} ready for practice`;
-          return (
-            <div className="fade-up" style={{ marginBottom: 20, animationDelay: "0.12s" }}>
-              <div style={{
-                background: "var(--c-bg-card)", borderRadius: 20, padding: "16px 20px",
-                boxShadow: "0 4px 16px rgba(22,51,35,0.04)", border: "1px solid var(--c-border)",
-                display: "flex", alignItems: "center", gap: 16,
-              }}>
-                <span style={{ fontSize: 28, lineHeight: 1 }}>{"\u263D"}</span>
-                <div style={{ flex: 1 }}>
-                  <p style={{ fontFamily: "var(--font-heading)", fontSize: 15, fontWeight: 600, color: "var(--c-text)", margin: 0 }}>Review due</p>
-                  <p style={{ fontSize: 12, color: "var(--c-text-muted)", margin: "2px 0 0" }}>{subtitle}</p>
-                </div>
-                <button
-                  onClick={() => { sfxNodeTap(); onStartLesson("review"); }}
-                  style={{
-                    background: "transparent", color: "var(--c-primary)",
-                    borderRadius: 12, padding: "10px 16px", border: "1.5px solid var(--c-primary)",
-                    fontFamily: "var(--font-body)", fontSize: 13, fontWeight: 600,
-                    cursor: "pointer", transition: "all 0.2s", whiteSpace: "nowrap",
-                  }}
-                >
-                  Start review →
-                </button>
-              </div>
-            </div>
-          );
-        })()}
+        {/* ── Non-urgent Review Card (below hero) ── */}
+        {hasReview && !reviewIsUrgent && <ReviewCard reviewPlan={reviewPlan} dueLetters={dueLetters} isUrgent={false} onStart={() => { sfxNodeTap(); onStartLesson("review"); }} />}
 
         {/* ── Momentum copy (Zeigarnik) ── */}
         {momentumCopy && (

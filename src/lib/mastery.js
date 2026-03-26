@@ -6,6 +6,8 @@
  * Confusion keys: "recognition:2->3", "sound:7->8", "harakat:ba-fatha->ba-kasra"
  */
 
+import { getLetter } from "../data/letters.js";
+
 // ── Entity key normalization ──
 
 /**
@@ -149,6 +151,45 @@ export function recordSkillAttempt(entry, result, today) {
   return s;
 }
 
+// ── Error categorization ──
+
+/**
+ * Valid error categories.
+ */
+export const ERROR_CATEGORIES = ["visual_confusion", "sound_confusion", "vowel_confusion", "random_miss"];
+
+/**
+ * Categorize a wrong answer into one of the error types.
+ * Uses the quiz result's question context to classify the miss honestly.
+ * If classification is ambiguous, returns "random_miss".
+ *
+ * @param {object} result - quiz result record from useLessonQuiz
+ * @param {object} [letterData] - optional letter metadata lookup (getLetter)
+ * @returns {"visual_confusion"|"sound_confusion"|"vowel_confusion"|"random_miss"}
+ */
+export function categorizeError(result, getLetter) {
+  if (!result || result.correct) return "random_miss";
+
+  // Harakat / vowel questions → vowel confusion
+  if (result.isHarakat) return "vowel_confusion";
+
+  // Sound questions → sound confusion
+  if (result.hasAudio || result.questionType === "letter_to_sound" || result.questionType === "contrast_audio") {
+    return "sound_confusion";
+  }
+
+  // Recognition questions → check if target and selected are in the same visual family
+  if (getLetter && typeof result.targetId === "number" && typeof result.selectedId === "number") {
+    const target = getLetter(result.targetId);
+    const selected = getLetter(result.selectedId);
+    if (target && selected && target.family === selected.family && target.id !== selected.id) {
+      return "visual_confusion";
+    }
+  }
+
+  return "random_miss";
+}
+
 // ── Confusion recording ──
 
 /**
@@ -156,17 +197,23 @@ export function recordSkillAttempt(entry, result, today) {
  * Only called when the user picked a wrong option.
  *
  * @param {object} confusions - existing confusion map
- * @param {{ confusionKey: string }} result - must include a confusionKey
+ * @param {string} confusionKey - e.g. "recognition:2->3"
  * @param {string} today
+ * @param {string} [errorCategory] - one of ERROR_CATEGORIES
  * @returns {object} updated confusion map
  */
-export function recordConfusion(confusions, confusionKey, today) {
+export function recordConfusion(confusions, confusionKey, today, errorCategory) {
   const existing = confusions[confusionKey] || { count: 0, lastSeen: null };
+  const categories = { ...(existing.categories || {}) };
+  if (errorCategory) {
+    categories[errorCategory] = (categories[errorCategory] || 0) + 1;
+  }
   return {
     ...confusions,
     [confusionKey]: {
       count: existing.count + 1,
       lastSeen: today,
+      categories,
     },
   };
 }
@@ -330,11 +377,12 @@ export function mergeQuizResultsIntoMastery(mastery, quizResults, today) {
       skills[sk] = recordSkillAttempt(skills[sk], r, today);
     }
 
-    // Confusions
+    // Confusions + error categorization
     if (!r.correct) {
       const cKey = deriveConfusionKey(r);
       if (cKey) {
-        confusions = recordConfusion(confusions, cKey, today);
+        const errorCat = categorizeError(r, getLetter);
+        confusions = recordConfusion(confusions, cKey, today, errorCat);
       }
     }
   }

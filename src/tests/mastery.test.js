@@ -10,6 +10,8 @@ import {
   updateEntitySRS,
   mergeQuizResultsIntoMastery,
   deriveMasteryState,
+  categorizeError,
+  ERROR_CATEGORIES,
   MASTERY_MIN_ATTEMPTS,
   MASTERY_ACCURACY_THRESHOLD,
   MASTERY_RETAINED_INTERVAL,
@@ -28,7 +30,9 @@ import {
   getEntityMasteryStates,
   getMasteryStateCounts,
   getEntitiesByMasteryState,
+  getErrorCategorySummary,
 } from "../lib/selectors.js";
+import { getLetter } from "../data/letters.js";
 
 // ── Entity key normalization ──
 
@@ -194,6 +198,135 @@ describe("recordConfusion", () => {
     const existing = { "recognition:2->3": { count: 2, lastSeen: "2026-03-24" } };
     const result = recordConfusion(existing, "recognition:2->3", "2026-03-25");
     expect(result["recognition:2->3"].count).toBe(3);
+  });
+
+  it("stores error category when provided", () => {
+    const result = recordConfusion({}, "recognition:2->3", "2026-03-25", "visual_confusion");
+    expect(result["recognition:2->3"].categories.visual_confusion).toBe(1);
+  });
+
+  it("accumulates error categories across calls", () => {
+    let confusions = recordConfusion({}, "sound:7->8", "2026-03-25", "sound_confusion");
+    confusions = recordConfusion(confusions, "sound:7->8", "2026-03-25", "sound_confusion");
+    confusions = recordConfusion(confusions, "sound:7->8", "2026-03-25", "random_miss");
+    expect(confusions["sound:7->8"].categories.sound_confusion).toBe(2);
+    expect(confusions["sound:7->8"].categories.random_miss).toBe(1);
+  });
+
+  it("backward compat: old entries without categories work", () => {
+    const existing = { "recognition:2->3": { count: 5, lastSeen: "2026-03-20" } };
+    const result = recordConfusion(existing, "recognition:2->3", "2026-03-25", "visual_confusion");
+    expect(result["recognition:2->3"].count).toBe(6);
+    expect(result["recognition:2->3"].categories.visual_confusion).toBe(1);
+  });
+});
+
+// ── Error categorization ──
+
+describe("categorizeError", () => {
+  it("returns vowel_confusion for harakat questions", () => {
+    expect(categorizeError({ correct: false, isHarakat: true, targetId: "ba-fatha", selectedId: "ba-kasra" }, getLetter)).toBe("vowel_confusion");
+  });
+
+  it("returns sound_confusion for audio questions", () => {
+    expect(categorizeError({ correct: false, hasAudio: true, targetId: 2, selectedId: 3 }, getLetter)).toBe("sound_confusion");
+  });
+
+  it("returns sound_confusion for letter_to_sound questions", () => {
+    expect(categorizeError({ correct: false, questionType: "letter_to_sound", targetId: 12, selectedId: 14 }, getLetter)).toBe("sound_confusion");
+  });
+
+  it("returns sound_confusion for contrast_audio questions", () => {
+    expect(categorizeError({ correct: false, questionType: "contrast_audio", targetId: 6, selectedId: 26 }, getLetter)).toBe("sound_confusion");
+  });
+
+  it("returns visual_confusion for same-family recognition miss", () => {
+    // Ba(2) and Ta(3) are in family "ba"
+    expect(categorizeError({ correct: false, targetId: 2, selectedId: 3 }, getLetter)).toBe("visual_confusion");
+  });
+
+  it("returns visual_confusion for another same-family pair", () => {
+    // Seen(12) and Sheen(13) are in family "seen"
+    expect(categorizeError({ correct: false, targetId: 12, selectedId: 13 }, getLetter)).toBe("visual_confusion");
+  });
+
+  it("returns random_miss for different-family recognition miss", () => {
+    // Ba(2) and Seen(12) are in different families
+    expect(categorizeError({ correct: false, targetId: 2, selectedId: 12 }, getLetter)).toBe("random_miss");
+  });
+
+  it("returns random_miss for correct answers", () => {
+    expect(categorizeError({ correct: true, targetId: 2, selectedId: 2 }, getLetter)).toBe("random_miss");
+  });
+
+  it("returns random_miss for null result", () => {
+    expect(categorizeError(null, getLetter)).toBe("random_miss");
+  });
+
+  it("returns random_miss when getLetter is not available", () => {
+    expect(categorizeError({ correct: false, targetId: 2, selectedId: 3 }, null)).toBe("random_miss");
+  });
+
+  it("exports all four category names", () => {
+    expect(ERROR_CATEGORIES).toEqual(["visual_confusion", "sound_confusion", "vowel_confusion", "random_miss"]);
+  });
+});
+
+describe("getErrorCategorySummary", () => {
+  it("returns zeros for empty confusions", () => {
+    const summary = getErrorCategorySummary({});
+    expect(summary.total).toBe(0);
+    expect(summary.visual_confusion).toBe(0);
+  });
+
+  it("aggregates across confusion entries", () => {
+    const confusions = {
+      "recognition:2->3": { count: 3, lastSeen: "2026-03-25", categories: { visual_confusion: 2, random_miss: 1 } },
+      "sound:7->8": { count: 2, lastSeen: "2026-03-25", categories: { sound_confusion: 2 } },
+    };
+    const summary = getErrorCategorySummary(confusions);
+    expect(summary.visual_confusion).toBe(2);
+    expect(summary.sound_confusion).toBe(2);
+    expect(summary.random_miss).toBe(1);
+    expect(summary.total).toBe(5);
+  });
+
+  it("handles old entries without categories", () => {
+    const confusions = {
+      "recognition:2->3": { count: 5, lastSeen: "2026-03-20" }, // no categories field
+    };
+    const summary = getErrorCategorySummary(confusions);
+    expect(summary.total).toBe(0); // old entries don't contribute to category counts
+  });
+
+  it("returns zeros for null", () => {
+    expect(getErrorCategorySummary(null).total).toBe(0);
+  });
+});
+
+// ── Error categorization in merge ──
+
+describe("mergeQuizResultsIntoMastery — error categorization", () => {
+  it("categorizes errors during merge", () => {
+    const mastery = emptyMastery();
+    const results = [
+      { targetId: 2, correct: false, targetKey: "letter:2", selectedKey: "letter:3", selectedId: 3, skillKeys: [], isHarakat: false, hasAudio: false, questionType: "tap" },
+    ];
+    const merged = mergeQuizResultsIntoMastery(mastery, results, "2026-03-26");
+    // Ba(2) → Ta(3) same family → visual_confusion
+    const confKeys = Object.keys(merged.confusions);
+    expect(confKeys.length).toBe(1);
+    expect(merged.confusions[confKeys[0]].categories.visual_confusion).toBe(1);
+  });
+
+  it("categorizes sound errors during merge", () => {
+    const mastery = emptyMastery();
+    const results = [
+      { targetId: 12, correct: false, targetKey: "letter:12", selectedKey: "letter:14", selectedId: 14, skillKeys: [], isHarakat: false, hasAudio: true, questionType: "audio_to_letter" },
+    ];
+    const merged = mergeQuizResultsIntoMastery(mastery, results, "2026-03-26");
+    const confKeys = Object.keys(merged.confusions);
+    expect(merged.confusions[confKeys[0]].categories.sound_confusion).toBe(1);
   });
 });
 

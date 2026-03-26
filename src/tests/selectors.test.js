@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { LESSONS } from "../data/lessons.js";
-import { getCurrentLesson, getCurrentUnlockedLesson, getLearnedLetterIds, getPhaseCounts, getDailyGoal, getDueLetters, getLessonsCompletedCount, getLastCompletedLesson } from "../lib/selectors.js";
+import { getCurrentLesson, getCurrentUnlockedLesson, getLearnedLetterIds, getPhaseCounts, getDailyGoal, getDueLetters, getLessonsCompletedCount, getLastCompletedLesson, planReviewSession } from "../lib/selectors.js";
 
 const ALL_IDS = LESSONS.map(l => l.id);
 const LAST_LESSON_ID = LESSONS[LESSONS.length - 1].id;
@@ -238,5 +238,73 @@ describe("buildReviewLessonPayload — combo support", () => {
     const mastery = { entities: {}, skills: {}, confusions: {} };
     const result = buildReviewLessonPayload(mastery, [], "2026-03-25");
     expect(result).toBeNull();
+  });
+});
+
+// ── Review planner improvements ──
+
+describe("planReviewSession — unstable items and urgency", () => {
+  it("includes unstable entities in review plan", () => {
+    const mastery = {
+      entities: {
+        // unstable: >= 3 attempts, < 70% accuracy
+        "letter:5": { correct: 1, attempts: 5, sessionStreak: 0, intervalDays: 1, lastSeen: "2026-03-25", nextReview: "2026-04-01" },
+      },
+      skills: {},
+      confusions: {},
+    };
+    const plan = planReviewSession(mastery, "2026-03-26");
+    expect(plan.hasReviewWork).toBe(true);
+    expect(plan.items).toContain("letter:5");
+    expect(plan.unstable).toContain("letter:5");
+  });
+
+  it("marks review as urgent when unstable items exist", () => {
+    const mastery = {
+      entities: {
+        "letter:3": { correct: 1, attempts: 4, sessionStreak: 0, intervalDays: 1, lastSeen: "2026-03-25" },
+      },
+      skills: {},
+      confusions: {},
+    };
+    const plan = planReviewSession(mastery, "2026-03-26");
+    expect(plan.isUrgent).toBe(true);
+  });
+
+  it("marks review as urgent when 4+ items are due", () => {
+    const entities = {};
+    for (let i = 1; i <= 4; i++) {
+      entities[`letter:${i}`] = { correct: 3, attempts: 3, lastSeen: "2026-03-24", nextReview: "2026-03-25", sessionStreak: 1, intervalDays: 1 };
+    }
+    const plan = planReviewSession({ entities, skills: {}, confusions: {} }, "2026-03-26");
+    expect(plan.isUrgent).toBe(true);
+    expect(plan.totalItems).toBe(4);
+  });
+
+  it("is not urgent for small non-unstable review", () => {
+    const mastery = {
+      entities: {
+        "letter:2": { correct: 3, attempts: 3, lastSeen: "2026-03-24", nextReview: "2026-03-25", sessionStreak: 1, intervalDays: 1 },
+      },
+      skills: {},
+      confusions: {},
+    };
+    const plan = planReviewSession(mastery, "2026-03-26");
+    expect(plan.hasReviewWork).toBe(true);
+    expect(plan.isUrgent).toBe(false);
+  });
+
+  it("deduplicates unstable items already in due list", () => {
+    const mastery = {
+      entities: {
+        // Both due AND unstable
+        "letter:7": { correct: 1, attempts: 5, lastSeen: "2026-03-24", nextReview: "2026-03-25", sessionStreak: 0, intervalDays: 1 },
+      },
+      skills: {},
+      confusions: {},
+    };
+    const plan = planReviewSession(mastery, "2026-03-26");
+    const count = plan.items.filter(k => k === "letter:7").length;
+    expect(count).toBe(1);
   });
 });

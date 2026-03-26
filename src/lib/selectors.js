@@ -1,6 +1,6 @@
 import { LESSONS } from "../data/lessons.js";
 import { isLessonUnlocked } from "./progress.js";
-import { parseEntityKey, deriveMasteryState } from "./mastery.js";
+import { parseEntityKey, deriveMasteryState, ERROR_CATEGORIES } from "./mastery.js";
 
 /** Derived: count of completed lessons. */
 export function getLessonsCompletedCount(completedLessonIds) {
@@ -143,15 +143,37 @@ export function getTopConfusions(confusions, limit = 5) {
 }
 
 /**
+ * Aggregate error category counts across all confusion entries.
+ * Returns { visual_confusion: N, sound_confusion: N, vowel_confusion: N, random_miss: N, total: N }
+ */
+export function getErrorCategorySummary(confusions) {
+  const summary = { visual_confusion: 0, sound_confusion: 0, vowel_confusion: 0, random_miss: 0, total: 0 };
+  if (!confusions) return summary;
+  for (const entry of Object.values(confusions)) {
+    if (entry.categories) {
+      for (const [cat, count] of Object.entries(entry.categories)) {
+        if (cat in summary) {
+          summary[cat] += count;
+          summary.total += count;
+        }
+      }
+    }
+  }
+  return summary;
+}
+
+/**
  * Build a review session plan from mastery state.
- * Returns { due: string[], weak: string[], confused: { key, count }[], totalItems: number }
+ * Pulls from: due items, unstable items, weak items, and confused pairs.
+ * Returns { due, unstable, weak, confused, items, totalItems, hasReviewWork, isUrgent }
  */
 export function planReviewSession(mastery, today, { maxItems = 12 } = {}) {
   const due = getDueEntityKeys(mastery.entities, today);
+  const unstable = getEntitiesByMasteryState(mastery.entities, "unstable", today);
   const weak = getWeakEntityKeys(mastery.entities);
   const confused = getTopConfusions(mastery.confusions, 5);
 
-  // Deduplicate: due takes priority, then weak, then confused entity keys
+  // Deduplicate: due first, then unstable, then weak, then confused
   const picked = new Set();
   const addUpTo = (keys, limit) => {
     for (const k of keys) {
@@ -161,6 +183,7 @@ export function planReviewSession(mastery, today, { maxItems = 12 } = {}) {
   };
 
   addUpTo(due, maxItems);
+  addUpTo(unstable, maxItems);
   addUpTo(weak, maxItems);
 
   // Extract entity keys from confusion pairs (both sides)
@@ -184,13 +207,21 @@ export function planReviewSession(mastery, today, { maxItems = 12 } = {}) {
   }
   addUpTo(confusedEntityKeys, maxItems);
 
+  const totalItems = picked.size;
+
+  // Review is "urgent" when there are enough items to warrant priority attention:
+  // 4+ items, or any unstable items (mastery below threshold after real attempts)
+  const isUrgent = totalItems >= 4 || unstable.length > 0;
+
   return {
     due,
+    unstable,
     weak,
     confused,
     items: [...picked],
-    totalItems: picked.size,
-    hasReviewWork: picked.size > 0,
+    totalItems,
+    hasReviewWork: totalItems > 0,
+    isUrgent,
   };
 }
 
