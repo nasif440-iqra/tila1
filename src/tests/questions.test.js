@@ -1052,6 +1052,7 @@ describe("Edge cases", () => {
 
   it("generateLessonQuestions works for every lesson in LESSONS", () => {
     for (const lesson of LESSONS) {
+      if (lesson.lessonType === "hybrid") continue; // hybrid lessons use generateHybridExercises
       const qs = generateLessonQuestions(lesson, {});
       expect(Array.isArray(qs)).toBe(true);
       expect(qs.length).toBeGreaterThanOrEqual(1);
@@ -1205,6 +1206,7 @@ describe("stress tests — 100 randomized runs", () => {
   it("no lesson collapses to < 2 questions after filtering", () => {
     for (let run = 0; run < 20; run++) {
       for (const lesson of LESSONS) {
+        if (lesson.lessonType === "hybrid") continue; // hybrid lessons use generateHybridExercises
         const qs = generateLessonQuestions(lesson, {});
         if (qs.length < 2) {
           throw new Error(`Lesson ${lesson.id} (${lesson.lessonMode}) produced only ${qs.length} valid questions on run ${run}`);
@@ -1313,6 +1315,9 @@ describe("full question audit", () => {
   it("every generated question passes structural validation (all lessons × 3 runs)", () => {
     for (let run = 0; run < 3; run++) {
       for (const lesson of LESSONS) {
+        // Phase 4 connected-forms lessons produce exercises (not quiz questions) —
+        // they have a different structure and are validated separately in phase4.test.js
+        if (lesson.lessonMode === "connected-forms") continue;
         const qs = generateLessonQuestions(lesson, {});
         for (const q of qs) {
           const r = validateQuestion(q);

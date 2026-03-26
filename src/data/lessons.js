@@ -311,7 +311,128 @@ export const LESSONS = [
     title:"Full Harakat Review", description:"All letters, all vowels \u2014 the big mix",
     teachIds:[2,8,12,18,24,28], teachHarakat:["fatha","kasra","damma"],
     reviewIds:[3,10,14,20,26], familyRule:"You\u2019ve learned harakat on every letter \u2014 let\u2019s see how much you remember", hasSpeaking:false },
+
+  // ── Phase 4 — Connected Forms and Joining Logic ──
+
+  // ── MODULE 4.0 — Reading Direction ──
+  { id:86, phase:4, lessonMode:"connected-forms", lessonType:"hybrid", module:"4.0", moduleTitle:"Reading Direction",
+    title:"Arabic Reads Right to Left", description:"Before reading words, learn the direction",
+    teachIds:[], reviewIds:[], familyRule:"Arabic text is read from right to left \u2014 the opposite of English.",
+    scaffolding: { guided: 100, buildup: 0, free: 0 } },
+
+  // ── MODULE 4.1 — Anchor Concept ──
+  { id:87, phase:4, lessonMode:"connected-forms", lessonType:"hybrid", module:"4.1", moduleTitle:"First Connected Forms",
+    title:"Meet Ba\u2019s Forms", description:"The same letter, four different shapes",
+    teachIds:[2], reviewIds:[], familyRule:"Ba changes shape depending on where it appears in a word. The dot below stays.",
+    scaffolding: { guided: 70, buildup: 20, free: 10 } },
+
+  // ── MODULE 4.2 — Ba/Ta/Tha Family ──
+  { id:88, phase:4, lessonMode:"connected-forms", lessonType:"hybrid", module:"4.2",
+    title:"Ba \u00B7 Ta \u00B7 Tha Connected", description:"Dot-count tells them apart, even connected",
+    teachIds:[2,3,4], reviewIds:[], familyRule:"Same base shape in all positions. Count the dots: 1 below, 2 above, 3 above.",
+    scaffolding: { guided: 70, buildup: 20, free: 10 } },
+
+  // ── MODULE 4.3 — Jeem/Haa/Khaa Family ──
+  { id:89, phase:4, lessonMode:"connected-forms", lessonType:"hybrid", module:"4.3",
+    title:"Jeem \u00B7 Haa \u00B7 Khaa Connected", description:"The cup family changes shape",
+    teachIds:[5,6,7], reviewIds:[], familyRule:"Cup shape \u2014 dot inside, no dot, dot above. Same rule connected.",
+    scaffolding: { guided: 70, buildup: 20, free: 10 } },
+
+  // ── MODULE 4.4 — Seen/Sheen Family ──
+  { id:90, phase:4, lessonMode:"connected-forms", lessonType:"hybrid", module:"4.4",
+    title:"Seen \u00B7 Sheen Connected", description:"The teeth-shape in words",
+    teachIds:[12,13], reviewIds:[], familyRule:"Three-tooth silhouette. Dots still tell the truth.",
+    scaffolding: { guided: 65, buildup: 25, free: 10 } },
+
+  // ── MODULE 4.5 — Saad/Daad Family ──
+  { id:91, phase:4, lessonMode:"connected-forms", lessonType:"hybrid", module:"4.5",
+    title:"Saad \u00B7 Daad Connected", description:"Heavy letters in connected form",
+    teachIds:[14,15], reviewIds:[], familyRule:"Round, heavy shape. No dot vs 1 dot above.",
+    scaffolding: { guided: 65, buildup: 25, free: 10 } },
+
+  // ── MODULE 4.6 — Taa/Dhaa Family ──
+  { id:92, phase:4, lessonMode:"connected-forms", lessonType:"hybrid", module:"4.6",
+    title:"Taa \u00B7 Dhaa Connected", description:"Emphatic pair in words \u2014 slower pacing",
+    teachIds:[16,17], reviewIds:[], familyRule:"Bowl shape with strokes. No dot vs 1 dot above.",
+    scaffolding: { guided: 65, buildup: 25, free: 10 } },
+
+  // ── MODULE 4.7 — Ain/Ghain Family ──
+  { id:93, phase:4, lessonMode:"connected-forms", lessonType:"hybrid", module:"4.7",
+    title:"Ain \u00B7 Ghain Connected", description:"Highest confusion risk \u2014 extra practice",
+    teachIds:[18,19], reviewIds:[], familyRule:"Pinched shape. No dot vs 1 dot above. These change the most.",
+    scaffolding: { guided: 70, buildup: 20, free: 10 } },
+
+  // ── MODULE 4.8 — Fa/Qaf Family ──
+  { id:94, phase:4, lessonMode:"connected-forms", lessonType:"hybrid", module:"4.8",
+    title:"Fa \u00B7 Qaf Connected", description:"Dot-count pair in words",
+    teachIds:[20,21], reviewIds:[], familyRule:"Rounded head. 1 dot above vs 2 dots above.",
+    scaffolding: { guided: 60, buildup: 25, free: 15 } },
+
+  // ── MODULE 4.9–4.13 — Standalone Form Lessons ──
+  { id:95, phase:4, lessonMode:"connected-forms", lessonType:"hybrid", module:"4.9",
+    title:"Kaf Connected", description:"The hooked letter in words",
+    teachIds:[22], reviewIds:[], familyRule:"Kaf has a distinctive hook that changes in connected form.",
+    scaffolding: { guided: 55, buildup: 30, free: 15 } },
+
+  { id:96, phase:4, lessonMode:"connected-forms", lessonType:"hybrid", module:"4.10",
+    title:"Lam Connected", description:"Tall and graceful in words",
+    teachIds:[23], reviewIds:[], familyRule:"Lam keeps its tall shape but adjusts to connect.",
+    scaffolding: { guided: 55, buildup: 30, free: 15 } },
+
+  { id:97, phase:4, lessonMode:"connected-forms", lessonType:"hybrid", module:"4.11",
+    title:"Meem Connected", description:"The round one in words",
+    teachIds:[24], reviewIds:[], familyRule:"Meem\u2019s round shape is recognizable in all positions.",
+    scaffolding: { guided: 55, buildup: 30, free: 15 } },
+
+  { id:98, phase:4, lessonMode:"connected-forms", lessonType:"hybrid", module:"4.12",
+    title:"Noon \u00B7 Ya Comparison", description:"These look alike at the end of words",
+    teachIds:[25,28], reviewIds:[], familyRule:"Noon has 1 dot above. Ya has 2 dots below. In final form they look similar \u2014 dots are the key.",
+    scaffolding: { guided: 55, buildup: 30, free: 15 } },
+
+  { id:99, phase:4, lessonMode:"connected-forms", lessonType:"hybrid", module:"4.13",
+    title:"Ha Across Styles", description:"Ha looks different in every position",
+    teachIds:[26], reviewIds:[], familyRule:"Ha is the trickiest \u2014 it looks very different in each position. Learn all four.",
+    scaffolding: { guided: 55, buildup: 30, free: 15 } },
+
+  // ── MODULE 4.14–4.17 — Non-Connectors (Breakers) ──
+  { id:100, phase:4, lessonMode:"connected-forms", lessonType:"hybrid", module:"4.14", moduleTitle:"Letters That Break",
+    title:"Alif Breaks the Chain", description:"The first non-connector",
+    teachIds:[1], reviewIds:[], familyRule:"Alif never connects forward. When you see it, the chain stops.",
+    scaffolding: { guided: 50, buildup: 30, free: 20 } },
+
+  { id:101, phase:4, lessonMode:"connected-forms", lessonType:"hybrid", module:"4.15",
+    title:"Daal \u00B7 Dhaal Break", description:"Two breakers that look alike",
+    teachIds:[8,9], reviewIds:[], familyRule:"Daal and Dhaal never connect forward. Same shape \u2014 dot tells them apart.",
+    scaffolding: { guided: 50, buildup: 30, free: 20 } },
+
+  { id:102, phase:4, lessonMode:"connected-forms", lessonType:"hybrid", module:"4.16",
+    title:"Ra \u00B7 Zay Break", description:"Another breaker pair",
+    teachIds:[10,11], reviewIds:[], familyRule:"Ra and Zay never connect forward. Same curve \u2014 dot tells them apart.",
+    scaffolding: { guided: 50, buildup: 30, free: 20 } },
+
+  { id:103, phase:4, lessonMode:"connected-forms", lessonType:"hybrid", module:"4.17",
+    title:"Waw Breaks", description:"The last non-connector",
+    teachIds:[27], reviewIds:[], familyRule:"Waw never connects forward. Its round shape is easy to spot.",
+    scaffolding: { guided: 50, buildup: 30, free: 20 } },
+
+  // ── MODULE 4.18–4.20 — Mixed Retrieval and Mastery ──
+  { id:104, phase:4, lessonMode:"connected-forms", lessonType:"hybrid", module:"4.18", moduleTitle:"Putting It Together",
+    title:"Spot the Break", description:"Mark where words stop joining",
+    teachIds:[1,8,9,10,11,27], reviewIds:[2,5,12,18], familyRule:"Six letters never connect forward. Can you spot them?",
+    scaffolding: { guided: 30, buildup: 30, free: 40 } },
+
+  { id:105, phase:4, lessonMode:"connected-forms", lessonType:"hybrid", module:"4.19",
+    title:"Same Letter, Different Place", description:"Mixed retrieval across all forms",
+    teachIds:[2,3,5,12,18,20,23,25], reviewIds:[1,8,10,27], familyRule:"Every letter changes shape but keeps its identity.",
+    scaffolding: { guided: 20, buildup: 30, free: 50 } },
+
+  { id:106, phase:4, lessonMode:"connected-forms", lessonType:"hybrid", module:"4.20", moduleTitle:"Phase 4 Checkpoint",
+    title:"Connected Forms Mastery", description:"Can you recognize letters in all positions?",
+    teachIds:[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28],
+    reviewIds:[], familyRule:"All 28 letters, all positions. Prove you can see through the shapes.",
+    scaffolding: { guided: 10, buildup: 30, free: 60 } },
 ];
 
 export const PHASE_1_COMPLETION_THRESHOLD = 15;
 export const PHASE_2_COMPLETION_THRESHOLD = 12;
+export const PHASE_3_COMPLETION_THRESHOLD = 12;
