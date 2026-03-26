@@ -65,7 +65,7 @@ function buildFamilyComprehension(teachIds) {
     const l = getLetter(lid);
     return {
       id: lid,
-      label: l ? `${l.name} (${l.letter})` : String(lid),
+      label: l ? l.name : String(lid),
       isCorrect: lid === sourceLetterId,
     };
   });
@@ -159,10 +159,10 @@ function generateMixedRetrievalExercises(lesson) {
       Array.from({ length: 28 }, (_, i) => i + 1).filter(id => id !== letterId)
     ).slice(0, 2);
     const options = shuffle([
-      { id: letterId, label: `${letter.name} (${letter.letter})`, isCorrect: true },
+      { id: letterId, label: letter.name, isCorrect: true },
       ...pool.map(id => {
         const l = getLetter(id);
-        return { id, label: l ? `${l.name} (${l.letter})` : String(id), isCorrect: false };
+        return { id, label: l ? l.name : String(id), isCorrect: false };
       }),
     ]);
     return {
@@ -187,10 +187,10 @@ function generateMasteryCheckExercises() {
     const displayForm = cf.forms[pos];
     const pool = shuffle(allIds.filter(id => id !== letterId)).slice(0, 2);
     const options = shuffle([
-      { id: letterId, label: `${letter.name} (${letter.letter})`, isCorrect: true },
+      { id: letterId, label: letter.name, isCorrect: true },
       ...pool.map(id => {
         const l = getLetter(id);
-        return { id, label: l ? `${l.name} (${l.letter})` : String(id), isCorrect: false };
+        return { id, label: l ? l.name : String(id), isCorrect: false };
       }),
     ]);
     return {
