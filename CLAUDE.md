@@ -10,7 +10,7 @@ A free, progressive, game-based web app teaching users to read the Quran in Arab
 - **Audio**: Web Audio API (SFX) + pre-recorded WAV files + Google Cloud TTS (MP3)
 - **Styling**: Vanilla CSS with custom properties (tokens.css) + inline styles for dynamic values
 - **Persistence**: Browser localStorage only — no database, no auth. Export/import backup supported.
-- **Testing**: Vitest 4.1 + jsdom (274 tests across 8 files)
+- **Testing**: Vitest 4.1 + jsdom (332 tests across 8 files)
 - **PWA**: Service worker + manifest for offline support and Add to Home Screen
 - **Fonts**: Amiri / Traditional Arabic (Arabic serif) + Inter (English body) + Lora (English headings)
 
@@ -35,7 +35,7 @@ src/
     PhaseCompleteScreen.jsx      — Phase unlock celebration
     ReturnHadithScreen.jsx       — Return-user motivational interstitial (hadith + floating letters)
     WirdIntroduction.jsx         — Post-first-lesson Wird streak introduction (animated, multi-phase)
-    PronunciationGuide.jsx       — Pronunciation popup modals (single letter + comparison)
+    PronunciationGuide.jsx       — Pronunciation modals (PronunciationCard, LetterDetailModal, PronunciationCompare)
     Icons.jsx                    — SVG icon components
     lesson/
       LessonScreen.jsx           — Main lesson orchestrator (intro -> quiz -> summary)
@@ -87,22 +87,33 @@ src/
     selectors.test.js            — Derived selectors, phase counts, unlock logic, review planning
     quizProgress.test.js         — Quiz progression, streak behavior, wrong-answer recycling
     summaryAndReview.test.js     — Summary messaging, review session generation
+    outcome.test.js              — Lesson outcome pass/fail, per-mode thresholds, retry contracts
+    questions.test.js            — Question generators, rule validation, 100-run stress tests
+    routing.test.js              — Hash route parsing, serialization, transient screen behavior
 public/
   manifest.json                  — PWA manifest (standalone, portrait, theme colors)
   sw.js                          — Service worker (cache-first audio, network-first app shell)
+  favicon.svg                    — SVG favicon (crescent+arch mark)
+  tila-mark.svg                  — Full transparent logo mark (for splash/welcome)
+  icons/
+    app-icon.svg                 — Rounded-rect branded icon (PWA)
+    icon-192.png                 — PWA icon 192px
+    icon-512.png                 — PWA icon 512px
   audio/
     sounds/                      — 28 pre-recorded letter sounds (WAV)
     names/                       — 28 pre-recorded letter names (WAV)
     effects/                     — 19 SFX files (correct, wrong, streaks, transitions, etc.)
     generated/                   — Server-cached TTS audio (MP3, auto-pruned at 500 files)
+logo/                            — Brand logo assets (primary, light, horizontal, favicon, app-icon, transparent mark)
 server.js                        — Express backend (TTS proxy + static serving + health check)
 index.html                       — Entry HTML with PWA meta tags, font loading, SW registration
+.github/workflows/ci.yml         — CI pipeline (install, test, build)
 ```
 
 ## Architecture
 
 ### Screen Flow & Routing
-Hash-based routing for browser back button support. Screens managed via `useState` in `App.jsx` with `pushState`/`popstate` listeners. Safe back-navigation to home/progress/lesson; transient screens (phaseComplete, postLessonOnboarding) redirect to home on back.
+Hash-based routing with route object model (`routing.js`). Hash format: `#lesson/3`, `#lesson/review`, `#progress`, empty for home. Lesson ID encoded in hash for restore on back/refresh. Transient screens (phaseComplete, wirdIntroduction, etc.) use `replaceState` so browser-back goes home. Route parsing via `parseRoute(hash)` / `serializeRoute(route)`.
 
 ```
 Onboarding (8 steps) -> Lesson 1 -> PostLessonOnboarding (3 steps) -> WirdIntroduction -> HomeScreen
@@ -147,8 +158,9 @@ Key state shape:
 
 Each articulation object contains: `place` (tongue position), `manner` (airflow description), `breath` (voiced/unvoiced), `confusedWith` (common mix-ups with `{id:N}` tokens for inline Arabic references), `tryThis` (physical exercise the user can do).
 
-**PronunciationGuide.jsx** provides two components:
-- `PronunciationCard` — Single-letter popup modal. In contrast lessons, accepts `contrastWithId` prop to override confusion section with the specific lesson pair.
+**PronunciationGuide.jsx** provides three components:
+- `PronunciationCard` — Trigger button + popup modal for lesson intros. Accepts `contrastWithId` prop for contrast lessons.
+- `LetterDetailModal` — Full letter detail modal used by ProgressScreen. Works for all 28 letters (not just those with articulation). Shows tip, stats, audio, visual rule, and pronunciation guide if available.
 - `PronunciationCompare` — Side-by-side comparison popup for wrong-answer panels in sound questions.
 
 Text fields use `{id:N}` tokens (e.g., `{id:12}`) that render as Arabic glyph + (Name) inline references.
@@ -158,11 +170,17 @@ Text fields use `{id:N}` tokens (e.g., `{id:12}`) that render as Arabic glyph + 
 2. **Letter audio** — 56 pre-recorded WAV files (28 sounds + 28 names). First 8 letters preloaded on app start. Others fetched and cached on demand.
 3. **TTS** — Google Cloud TTS via Express proxy (`GET /api/tts?text=<arabic>`) for Phase 3 harakat combos. Voice: ar-XA-Wavenet-A (female) at 0.85x speed. Server-side file cache with SHA-256 content hashing. Frontend in-memory blob URL cache. Retry once on 5xx/network errors.
 
+### Lesson Outcome
+`outcome.js` evaluates pass/fail with per-mode thresholds: recognition 60%, sound 60%, contrast 60%, checkpoint 70%, harakat-intro 50%, review always passes. Failed lessons do not get added to `completedLessonIds`. Retry skips intro (`skipIntro` prop). Mastery is always recorded even on failure.
+
 ### Question Generation
 Each lesson mode has a dedicated generator in `src/lib/questions/`. Question types:
 - `tap` / `find` / `name_to_letter` / `letter_to_name` / `rule` — Phase 1 recognition
 - `audio_to_letter` / `letter_to_sound` / `contrast_audio` — Phase 2 sound
 - Harakat mark-to-sound matching — Phase 3
+- Phase 2 checkpoint generates sound questions (not recognition)
+
+`validateQuestion()` returns structured `{ valid, reason }` with 10 failure reasons. `filterValidQuestions()` replaces invalid questions with safe fallback types (tap/name_to_letter). `getRuleDistractors()` ensures rule questions have exactly one correct answer. 100-run stress tests cover all generators.
 
 Distractors are pedagogically meaningful: visual family members for recognition, `SOUND_CONFUSION_MAP` entries for sound questions. Wrong answers are recycled once (shuffled options) to the end of the queue. Mid-lesson celebration at ~45% for 8+ question lessons. Streak celebrations at 3, 5, 7 correct in a row.
 
@@ -182,9 +200,10 @@ Distractors are pedagogically meaningful: visual family members for recognition,
 - Both accessible from Progress screen "Your Data" section.
 
 ### PWA
-- `manifest.json`: standalone display, portrait orientation, theme color #163323.
-- `sw.js`: Cache-first for audio files (WAV/MP3). Network-first with cache fallback for app shell. Network-only for `/api/*` (TTS must be fresh). Cache name versioned (`tila-v1`).
-- Icons expected at `/icons/icon-192.png` and `/icons/icon-512.png` (not yet created).
+- `manifest.json`: standalone display, portrait orientation, theme color #163323. SVG + PNG icons.
+- `sw.js`: Cache-first for audio files (WAV/MP3). Network-first with cache fallback for app shell. Network-only for `/api/*` (TTS must be fresh). Cache versioned (`tila-v${CACHE_VERSION}`).
+- `favicon.svg`: SVG favicon (crescent+arch mark). Apple touch icon at `/icons/icon-192.png`.
+- Brand logo assets in `/logo/` — primary, light, horizontal lockup, favicon, app-icon, transparent mark.
 
 ## Design Tokens
 
@@ -202,7 +221,7 @@ Distractors are pedagogically meaningful: visual family members for recognition,
 --c-danger-light:  #FCE6E5   /* soft red — error backgrounds */
 --c-text:          #163323   /* deep green — primary text (same as primary) */
 --c-text-soft:     #52545C   /* gray — secondary text */
---c-text-muted:    #8A857A   /* warm gray — tertiary text, labels */
+--c-text-muted:    #6B6760   /* warm gray — tertiary text, labels (WCAG AA compliant) */
 --c-border:        #EBE6DC   /* warm light gray — borders, dividers */
 --font-body:       'Inter', sans-serif
 --font-heading:    'Lora', serif
@@ -222,12 +241,21 @@ Distractors are pedagogically meaningful: visual family members for recognition,
 - Components are single-file JSX
 - All lesson data statically defined in `src/data/lessons.js` — no runtime generation of curriculum
 - Hash-based routing via `pushState`/`popstate` — no routing library
-- Confetti via canvas-confetti on lesson completion (>= 70% accuracy)
+- Confetti via canvas-confetti on passed lesson completion (>= 70% accuracy)
 - `activeTab` derived from `screen` state (not independent state) to prevent desync
 - `useEffect` dependency arrays must be complete — functions used in effects are wrapped in `useCallback`
 - Date utilities centralized in `dateUtils.js` — no duplicate implementations
 - SRS logic lives in `mastery.js` only — `progress.js` re-exports for backward compat
 - Tests derive lesson counts from `LESSONS` array, not hardcoded numbers
+
+## DevTools Commands
+
+Available in browser console:
+
+```js
+unlockAllLessons()   // Marks all 85 lessons complete, skips onboarding, reloads
+resetProgress()      // Wipes all saved state, reloads to fresh start
+```
 
 ## Testing Shortcuts
 
@@ -244,8 +272,5 @@ location.reload();
 
 Reset all progress:
 ```js
-localStorage.removeItem("tila_progress");
-localStorage.removeItem("hasCompletedOnboarding");
-localStorage.removeItem("lastHadithInterstitialDate");
-location.reload();
+resetProgress()
 ```

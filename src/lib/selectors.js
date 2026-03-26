@@ -1,6 +1,6 @@
 import { LESSONS } from "../data/lessons.js";
 import { isLessonUnlocked } from "./progress.js";
-import { parseEntityKey } from "./mastery.js";
+import { parseEntityKey, deriveMasteryState } from "./mastery.js";
 
 /** Derived: count of completed lessons. */
 export function getLessonsCompletedCount(completedLessonIds) {
@@ -91,6 +91,45 @@ export function getWeakEntityKeys(entities, { minAttempts = 3, accuracyThreshold
       if (!e || e.attempts < minAttempts) return false;
       return (e.correct / e.attempts) < accuracyThreshold;
     })
+    .map(([key]) => key);
+}
+
+// ── Mastery state selectors ──
+
+/**
+ * Derive mastery states for all entities.
+ * Returns a Map-like object: { "letter:2": "accurate", "combo:ba-fatha": "introduced", ... }
+ */
+export function getEntityMasteryStates(entities, today) {
+  if (!entities) return {};
+  const states = {};
+  for (const [key, entry] of Object.entries(entities)) {
+    states[key] = deriveMasteryState(entry, today);
+  }
+  return states;
+}
+
+/**
+ * Count entities by mastery state.
+ * Returns { introduced: N, unstable: N, accurate: N, retained: N }
+ */
+export function getMasteryStateCounts(entities, today) {
+  const counts = { introduced: 0, unstable: 0, accurate: 0, retained: 0 };
+  if (!entities) return counts;
+  for (const entry of Object.values(entities)) {
+    const state = deriveMasteryState(entry, today);
+    counts[state]++;
+  }
+  return counts;
+}
+
+/**
+ * Get entity keys that are in a specific mastery state.
+ */
+export function getEntitiesByMasteryState(entities, state, today) {
+  if (!entities) return [];
+  return Object.entries(entities)
+    .filter(([, entry]) => deriveMasteryState(entry, today) === state)
     .map(([key]) => key);
 }
 

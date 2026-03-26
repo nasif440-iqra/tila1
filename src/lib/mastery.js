@@ -197,9 +197,90 @@ export function deriveConfusionKey(result) {
          `${result.selectedKey.replace("letter:", "")}`;
 }
 
+// ── Mastery state taxonomy ──
+//
+// Derives a named mastery state from raw entity data.
+// Pure derivation — nothing is stored. Computed from existing fields.
+//
+// States:
+//   "introduced" — seen, but insufficient evidence to judge
+//   "unstable"   — enough attempts to judge, but performance is inconsistent
+//   "accurate"   — demonstrated reliable recent performance
+//   "retained"   — accurate AND has passed spaced reviews over meaningful time
+//
+// Designed so future states (e.g. "accurate_isolated", "accurate_contrast")
+// can be added by extending the rules without changing the function signature.
+
+/** Minimum attempts before we judge accuracy. */
+const MASTERY_MIN_ATTEMPTS = 3;
+
+/** Accuracy threshold to move beyond unstable. */
+const MASTERY_ACCURACY_THRESHOLD = 0.7;
+
+/** Minimum SRS interval (days) to qualify as retained. */
+const MASTERY_RETAINED_INTERVAL = 7;
+
+/** Minimum session streak to qualify as retained. */
+const MASTERY_RETAINED_STREAK = 3;
+
+/**
+ * Derive the mastery state for a single entity entry.
+ *
+ * @param {object|null} entry — entity entry from mastery.entities
+ * @param {string} today — YYYY-MM-DD, used for retained-state time validation
+ * @returns {"introduced"|"unstable"|"accurate"|"retained"}
+ */
+export function deriveMasteryState(entry, today) {
+  if (!entry || !entry.attempts || entry.attempts < MASTERY_MIN_ATTEMPTS) {
+    return "introduced";
+  }
+
+  const accuracy = entry.correct / entry.attempts;
+  const streak = entry.sessionStreak || 0;
+  const interval = entry.intervalDays || 1;
+
+  // Below accuracy threshold → unstable regardless of streak
+  if (accuracy < MASTERY_ACCURACY_THRESHOLD) {
+    return "unstable";
+  }
+
+  // Retained requires:
+  // 1. High enough streak and interval (SRS has progressed far enough)
+  // 2. nextReview exists and is well into the future
+  //
+  // We use strict greater-than on the interval check: intervalDays must EXCEED
+  // the threshold, not just meet it. This means the learner needs sessionStreak >= 4
+  // (interval 14 days) rather than 3 (interval 7 days), which makes same-day
+  // cramming much harder to exploit. With current SRS intervals {1:1, 2:3, 3:7, 4:14},
+  // reaching interval > 7 requires streak 4 = four successful spaced reviews.
+  //
+  // NOTE: With current stored fields, we cannot perfectly distinguish "4 sessions
+  // today" from "4 sessions over 2 weeks." A future `firstSeen` field would
+  // enable a true time-elapsed check. For now, requiring streak 4 + interval 14
+  // makes the bar high enough to be meaningfully honest.
+  if (streak >= MASTERY_RETAINED_STREAK && interval > MASTERY_RETAINED_INTERVAL) {
+    if (entry.nextReview && today) {
+      const daysUntilReview = getDayDifference(entry.nextReview, today);
+      if (daysUntilReview > 0) {
+        return "retained";
+      }
+    }
+  }
+
+  return "accurate";
+}
+
+// Export thresholds for tests and future tuning
+export {
+  MASTERY_MIN_ATTEMPTS,
+  MASTERY_ACCURACY_THRESHOLD,
+  MASTERY_RETAINED_INTERVAL,
+  MASTERY_RETAINED_STREAK,
+};
+
 // ── SRS scheduling ──
 
-import { addDateDays } from "./dateUtils.js";
+import { addDateDays, getDayDifference } from "./dateUtils.js";
 
 const SRS_INTERVALS = { 1: 1, 2: 3, 3: 7, 4: 14 };
 

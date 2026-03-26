@@ -9,6 +9,11 @@ import {
   deriveConfusionKey,
   updateEntitySRS,
   mergeQuizResultsIntoMastery,
+  deriveMasteryState,
+  MASTERY_MIN_ATTEMPTS,
+  MASTERY_ACCURACY_THRESHOLD,
+  MASTERY_RETAINED_INTERVAL,
+  MASTERY_RETAINED_STREAK,
 } from "../lib/mastery.js";
 import {
   migrateFlatProgressToEntities,
@@ -20,6 +25,9 @@ import {
   getWeakEntityKeys,
   getTopConfusions,
   planReviewSession,
+  getEntityMasteryStates,
+  getMasteryStateCounts,
+  getEntitiesByMasteryState,
 } from "../lib/selectors.js";
 
 // ── Entity key normalization ──
@@ -382,5 +390,203 @@ describe("planReviewSession", () => {
     }
     const plan = planReviewSession({ entities, skills: {}, confusions: {} }, "2026-03-25", { maxItems: 5 });
     expect(plan.items.length).toBeLessThanOrEqual(5);
+  });
+});
+
+// ── Mastery state taxonomy ──
+
+describe("deriveMasteryState", () => {
+  const today = "2026-03-26";
+
+  it("returns 'introduced' for null entry", () => {
+    expect(deriveMasteryState(null, today)).toBe("introduced");
+  });
+
+  it("returns 'introduced' for entry with zero attempts", () => {
+    expect(deriveMasteryState({ correct: 0, attempts: 0 }, today)).toBe("introduced");
+  });
+
+  it("returns 'introduced' for entry below minimum attempts", () => {
+    expect(deriveMasteryState({ correct: 2, attempts: 2 }, today)).toBe("introduced");
+    expect(deriveMasteryState({ correct: 1, attempts: 1 }, today)).toBe("introduced");
+  });
+
+  it("returns 'introduced' for exactly min-1 attempts", () => {
+    expect(deriveMasteryState({ correct: 2, attempts: MASTERY_MIN_ATTEMPTS - 1 }, today)).toBe("introduced");
+  });
+
+  it("returns 'unstable' for low accuracy with enough attempts", () => {
+    // 2/5 = 40% < 70%
+    expect(deriveMasteryState({ correct: 2, attempts: 5, sessionStreak: 1 }, today)).toBe("unstable");
+  });
+
+  it("returns 'unstable' for accuracy just below threshold", () => {
+    // 69% < 70%
+    expect(deriveMasteryState({ correct: 69, attempts: 100, sessionStreak: 2 }, today)).toBe("unstable");
+  });
+
+  it("returns 'accurate' when accuracy is good but streak was reset", () => {
+    // 80% accuracy but streak is 0 — recent failure reset it.
+    // Still accurate because the overall record is good.
+    expect(deriveMasteryState({ correct: 4, attempts: 5, sessionStreak: 0, intervalDays: 1 }, today)).toBe("accurate");
+  });
+
+  it("returns 'accurate' for good accuracy with enough attempts", () => {
+    expect(deriveMasteryState({ correct: 4, attempts: 5, sessionStreak: 1, intervalDays: 1 }, today)).toBe("accurate");
+  });
+
+  it("returns 'accurate' at exactly the threshold", () => {
+    // 70% exactly
+    expect(deriveMasteryState({ correct: 7, attempts: 10, sessionStreak: 1, intervalDays: 1 }, today)).toBe("accurate");
+  });
+
+  it("returns 'accurate' even with high streak if interval too low", () => {
+    expect(deriveMasteryState({ correct: 9, attempts: 10, sessionStreak: 4, intervalDays: 3 }, today)).toBe("accurate");
+  });
+
+  it("returns 'accurate' at streak 3 / interval 7 — not yet retained", () => {
+    // streak 3, interval exactly 7 — does NOT meet strict > 7 requirement
+    expect(deriveMasteryState({
+      correct: 9, attempts: 10, sessionStreak: 3, intervalDays: 7,
+      nextReview: "2026-04-02",
+    }, today)).toBe("accurate");
+  });
+
+  it("returns 'retained' at streak 4 / interval 14 with future review", () => {
+    expect(deriveMasteryState({
+      correct: 15, attempts: 16, sessionStreak: 4, intervalDays: 14,
+      nextReview: "2026-04-09",
+    }, today)).toBe("retained");
+  });
+
+  it("does NOT return 'retained' if 3 sessions happened same day", () => {
+    // Learner did 3 lessons in one day. sessionStreak=3, intervalDays=7.
+    // interval is exactly 7, not > 7. So this correctly stays accurate.
+    expect(deriveMasteryState({
+      correct: 9, attempts: 9, sessionStreak: 3, intervalDays: 7,
+      nextReview: "2026-04-02",
+    }, today)).toBe("accurate");
+  });
+
+  it("does NOT return 'retained' even with 4 same-day sessions if nextReview is past", () => {
+    // Even streak 4, interval 14 — if nextReview is in the past, not retained
+    expect(deriveMasteryState({
+      correct: 12, attempts: 12, sessionStreak: 4, intervalDays: 14,
+      nextReview: "2026-03-20", // in the past
+    }, today)).toBe("accurate");
+  });
+
+  it("does NOT return 'retained' without nextReview", () => {
+    expect(deriveMasteryState({
+      correct: 9, attempts: 10, sessionStreak: 4, intervalDays: 14,
+      nextReview: null,
+    }, today)).toBe("accurate");
+  });
+
+  it("does not return 'retained' if streak is just below threshold", () => {
+    expect(deriveMasteryState({
+      correct: 9, attempts: 10, sessionStreak: MASTERY_RETAINED_STREAK - 1, intervalDays: 14,
+      nextReview: "2026-04-09",
+    }, today)).toBe("accurate");
+  });
+
+  it("does not return 'retained' if interval is at threshold (needs strict >)", () => {
+    expect(deriveMasteryState({
+      correct: 9, attempts: 10, sessionStreak: 4, intervalDays: MASTERY_RETAINED_INTERVAL,
+      nextReview: "2026-04-02",
+    }, today)).toBe("accurate");
+  });
+
+  it("failure resets: high accuracy but streak 0 after recent failure", () => {
+    // A learner who was doing well but failed the last review
+    const entry = { correct: 8, attempts: 10, sessionStreak: 0, intervalDays: 1 };
+    // Still accurate — the overall record is good even though the last session was bad
+    expect(deriveMasteryState(entry, today)).toBe("accurate");
+  });
+
+  it("handles legacy entries missing sessionStreak/intervalDays", () => {
+    // Old data might not have these fields
+    const legacy = { correct: 5, attempts: 8, lastSeen: "2026-03-20" };
+    // 62.5% < 70% → unstable
+    expect(deriveMasteryState(legacy, today)).toBe("unstable");
+
+    const legacyGood = { correct: 6, attempts: 8, lastSeen: "2026-03-20" };
+    // 75% >= 70%, streak defaults to 0, interval defaults to 1 → accurate
+    expect(deriveMasteryState(legacyGood, today)).toBe("accurate");
+  });
+
+  it("one lucky tap does not reach accurate", () => {
+    // 1/1 = 100% but only 1 attempt — still introduced
+    expect(deriveMasteryState({ correct: 1, attempts: 1 }, today)).toBe("introduced");
+  });
+
+  it("exports threshold constants for transparency", () => {
+    expect(MASTERY_MIN_ATTEMPTS).toBe(3);
+    expect(MASTERY_ACCURACY_THRESHOLD).toBe(0.7);
+    expect(MASTERY_RETAINED_INTERVAL).toBe(7);
+    expect(MASTERY_RETAINED_STREAK).toBe(3);
+  });
+});
+
+// ── Mastery state selectors ──
+
+describe("getEntityMasteryStates", () => {
+  const today = "2026-03-26";
+
+  it("returns empty object for null entities", () => {
+    expect(getEntityMasteryStates(null, today)).toEqual({});
+  });
+
+  it("derives states for multiple entities", () => {
+    const entities = {
+      "letter:1": { correct: 1, attempts: 1 },                                    // introduced
+      "letter:2": { correct: 2, attempts: 5, sessionStreak: 1 },                  // unstable
+      "letter:3": { correct: 4, attempts: 5, sessionStreak: 2, intervalDays: 3 }, // accurate
+      "letter:4": { correct: 9, attempts: 10, sessionStreak: 4, intervalDays: 14, nextReview: "2026-04-09", lastSeen: "2026-03-26" }, // retained
+    };
+    const states = getEntityMasteryStates(entities, today);
+    expect(states["letter:1"]).toBe("introduced");
+    expect(states["letter:2"]).toBe("unstable");
+    expect(states["letter:3"]).toBe("accurate");
+    expect(states["letter:4"]).toBe("retained");
+  });
+});
+
+describe("getMasteryStateCounts", () => {
+  it("counts entities by state", () => {
+    const entities = {
+      "letter:1": { correct: 1, attempts: 1 },
+      "letter:2": { correct: 1, attempts: 1 },
+      "letter:3": { correct: 2, attempts: 5, sessionStreak: 1 },
+      "letter:4": { correct: 4, attempts: 5, sessionStreak: 2, intervalDays: 3 },
+      "letter:5": { correct: 9, attempts: 10, sessionStreak: 4, intervalDays: 14, nextReview: "2026-04-09", lastSeen: "2026-03-26" },
+    };
+    const counts = getMasteryStateCounts(entities, "2026-03-26");
+    expect(counts.introduced).toBe(2);
+    expect(counts.unstable).toBe(1);
+    expect(counts.accurate).toBe(1);
+    expect(counts.retained).toBe(1);
+  });
+
+  it("returns all zeros for empty entities", () => {
+    const counts = getMasteryStateCounts({}, "2026-03-26");
+    expect(counts).toEqual({ introduced: 0, unstable: 0, accurate: 0, retained: 0 });
+  });
+});
+
+describe("getEntitiesByMasteryState", () => {
+  it("filters entities by specific state", () => {
+    const entities = {
+      "letter:1": { correct: 1, attempts: 1 },
+      "letter:2": { correct: 4, attempts: 5, sessionStreak: 2, intervalDays: 3 },
+      "letter:3": { correct: 9, attempts: 10, sessionStreak: 4, intervalDays: 14, nextReview: "2026-04-09", lastSeen: "2026-03-26" },
+    };
+    const accurate = getEntitiesByMasteryState(entities, "accurate", "2026-03-26");
+    expect(accurate).toContain("letter:2");
+    expect(accurate).not.toContain("letter:1");
+    expect(accurate).not.toContain("letter:3");
+
+    const retained = getEntitiesByMasteryState(entities, "retained", "2026-03-26");
+    expect(retained).toEqual(["letter:3"]);
   });
 });
