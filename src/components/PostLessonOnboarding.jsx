@@ -237,7 +237,7 @@ export default function PostLessonOnboarding({ onComplete }) {
               <div style={styles.confirmDiamondGlow} />
               <div style={styles.confirmDiamond}>
                 <div style={styles.confirmDiamondInner}>
-                  <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="var(--c-accent)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--c-accent)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                     <polyline className="checkmark-path" points="20 6 9 17 4 12" />
                   </svg>
                 </div>
@@ -463,15 +463,14 @@ const styles = {
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
-    justifyContent: "flex-start",
-    paddingTop: "20vh",
+    justifyContent: "center",
     width: "100%",
-    minHeight: "calc(100dvh - 64px)",
+    flex: 1,
     position: "relative",
     textAlign: "center",
     background: "linear-gradient(180deg, var(--c-bg-warm) 0%, var(--c-bg) 100%)",
     borderRadius: 0,
-    padding: "20vh 28px 36px",
+    padding: "0 28px 24px",
     overflow: "hidden",
   },
   confirmPattern: {
@@ -496,12 +495,12 @@ const styles = {
   },
   confirmDiamondWrap: {
     position: "relative",
-    width: 100,
-    height: 100,
+    width: 80,
+    height: 80,
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: 20,
+    marginBottom: 16,
   },
   confirmDiamondGlow: {
     position: "absolute",
@@ -512,8 +511,8 @@ const styles = {
     pointerEvents: "none",
   },
   confirmDiamond: {
-    width: 84,
-    height: 84,
+    width: 68,
+    height: 68,
     background: "var(--c-primary)",
     borderRadius: 24,
     transform: "rotate(45deg)",
@@ -530,27 +529,27 @@ const styles = {
   },
   confirmHeadline: {
     fontFamily: "var(--font-heading)",
-    fontSize: 26,
+    fontSize: 24,
     fontWeight: 600,
     lineHeight: 1.35,
     color: "var(--c-text)",
-    marginBottom: 10,
+    marginBottom: 8,
     letterSpacing: "-0.01em",
   },
   confirmBody: {
-    fontSize: 15,
+    fontSize: 14,
     lineHeight: 1.6,
     color: "var(--c-text-soft)",
     maxWidth: 280,
-    marginBottom: 8,
+    marginBottom: 6,
     fontFamily: "var(--font-body)",
   },
   confirmCloser: {
     fontFamily: "var(--font-heading)",
     fontStyle: "italic",
-    fontSize: 14,
+    fontSize: 13,
     color: "var(--c-text-muted)",
-    marginBottom: 24,
+    marginBottom: 20,
   },
 
   btnDisabled: {
