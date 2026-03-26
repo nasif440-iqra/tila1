@@ -41,7 +41,7 @@ export default function FreeReader({ exercise, onComplete }) {
   }
 
   function handleGotItNow() {
-    onComplete({ correct: true, targetId: exercise.targetId, selfAssessed: true });
+    onComplete({ correct: true, targetId: exercise.targetId, selfAssessed: true, selfAssessedRetry: true });
   }
 
   function handleHearItAgain() {

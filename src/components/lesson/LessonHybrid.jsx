@@ -55,24 +55,24 @@ function StageIndicator({ stage }) {
 
 function ComprehensionExercise({ exercise, onComplete }) {
   const [selected, setSelected] = useState(null);
-  const { prompt, arabicDisplay, options = [] } = exercise;
+  const { prompt, displayArabic, options = [] } = exercise;
 
   function handleSelect(option) {
     if (selected !== null) return;
     setSelected(option);
-    const correct = option.correct === true;
+    const correct = option.isCorrect === true;
     onComplete({ correct, selectedOption: option });
   }
 
   return (
     <div style={{ display: "flex", flexDirection: "column", alignItems: "center", width: "100%", gap: 16 }}>
-      {arabicDisplay && (
+      {displayArabic && (
         <div
           className="arabic-letter"
           dir="rtl"
           style={{ fontSize: 56, lineHeight: 1.4, marginBottom: 4, textAlign: "center" }}
         >
-          {arabicDisplay}
+          {displayArabic}
         </div>
       )}
       <p style={{ fontSize: 17, fontWeight: 600, color: "var(--c-text)", textAlign: "center", marginBottom: 8 }}>
@@ -84,13 +84,13 @@ function ComprehensionExercise({ exercise, onComplete }) {
           const isAnswered = selected !== null;
           let optionStyle = {};
           if (isAnswered) {
-            if (option.correct) {
+            if (option.isCorrect) {
               optionStyle = {
                 background: "var(--c-primary-soft)",
                 borderColor: "var(--c-primary)",
                 color: "var(--c-primary)",
               };
-            } else if (isSelected && !option.correct) {
+            } else if (isSelected && !option.isCorrect) {
               optionStyle = {
                 background: "var(--c-danger-light)",
                 borderColor: "var(--c-danger)",
@@ -110,7 +110,7 @@ function ComprehensionExercise({ exercise, onComplete }) {
                 ...optionStyle,
               }}
             >
-              {option.text}
+              {option.label}
             </button>
           );
         })}

@@ -151,26 +151,33 @@ describe("generateConnectedFormExercises", () => {
       expect(breaks.length).toBeGreaterThan(0);
     });
 
-    it("spot_the_break exercises have letters array with joins field", () => {
-      const lesson = makeLesson({ module: "4.18", teachIds: [1, 8, 9] });
+    it("spot_the_break exercises have word, segments, and breakerLetterId", () => {
+      const lesson = makeLesson({ module: "4.18", teachIds: [1, 8, 9, 10, 11, 27] });
       const result = generateConnectedFormExercises(lesson);
       const breakEx = result.find(e => e.type === "spot_the_break");
       expect(breakEx).toBeDefined();
-      expect(Array.isArray(breakEx.letters)).toBe(true);
-      for (const l of breakEx.letters) {
-        expect(l).toHaveProperty("letterId");
-        expect(l).toHaveProperty("joins");
-        expect(typeof l.joins).toBe("boolean");
-      }
+      expect(breakEx.word).toBeDefined();
+      expect(breakEx.word.arabic).toBeDefined();
+      expect(breakEx.word.transliteration).toBeDefined();
+      expect(Array.isArray(breakEx.segments)).toBe(true);
+      expect(breakEx.segments.length).toBeGreaterThanOrEqual(2);
+      expect(typeof breakEx.breakerLetterId).toBe("number");
+      expect(typeof breakEx.explanation).toBe("string");
     });
 
-    it("spot_the_break options have exactly one correct answer", () => {
-      const lesson = makeLesson({ module: "4.18" });
+    it("spot_the_break segments have isBreakAfter field", () => {
+      const lesson = makeLesson({ module: "4.18", teachIds: [1, 8, 9, 10, 11, 27] });
       const result = generateConnectedFormExercises(lesson);
       const breakExercises = result.filter(e => e.type === "spot_the_break");
       for (const ex of breakExercises) {
-        const correct = ex.options.filter(o => o.isCorrect);
-        expect(correct.length).toBe(1);
+        for (const seg of ex.segments) {
+          expect(seg).toHaveProperty("arabic");
+          expect(seg).toHaveProperty("isBreakAfter");
+          expect(typeof seg.isBreakAfter).toBe("boolean");
+        }
+        // Exactly one segment should have isBreakAfter: true
+        const breakers = ex.segments.filter(s => s.isBreakAfter);
+        expect(breakers.length).toBe(1);
       }
     });
   });

@@ -112,7 +112,8 @@ export default function useLessonHybrid({ lesson, exercises, onComplete }) {
         sfxLessonIncomplete();
       }
       setPhase("summary");
-      if (typeof onComplete === "function") onComplete(results);
+      // Note: onComplete is NOT called here — it's called by LessonSummary
+      // when the user taps Continue. This prevents double invocation.
     } else {
       setExIndex(index);
     }

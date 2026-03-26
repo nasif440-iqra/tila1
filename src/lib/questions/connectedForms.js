@@ -129,18 +129,18 @@ function generateSpotTheBreakExercises(lesson) {
     const breakerCf = getConnectedForms(breakerId);
     const connectorCf = getConnectedForms(connector.id);
     if (!breakerCf || !connectorCf) continue;
+    // Build a two-segment "word" where the breaker causes the chain to stop
+    const wordArabic = connector.letter + "\u064E" + breakerLetter.letter + "\u064E";
+    const wordTranslit = connector.transliteration + "a" + breakerLetter.transliteration + "a";
     exercises.push({
       type: "spot_the_break",
-      prompt: "Which letter breaks the connection?",
-      letters: [
-        { letterId: connector.id, form: connectorCf.forms.initial, joins: true },
-        { letterId: breakerId, form: breakerCf.forms.isolated, joins: false },
+      word: { arabic: wordArabic, transliteration: wordTranslit },
+      segments: [
+        { arabic: connector.letter + "\u064E", letterIds: [connector.id], isBreakAfter: false },
+        { arabic: breakerLetter.letter + "\u064E", letterIds: [breakerId], isBreakAfter: true },
       ],
-      targetId: breakerId,
-      options: shuffle([
-        { id: breakerId, label: `${breakerLetter.name} (${breakerLetter.letter})`, isCorrect: true },
-        { id: connector.id, label: `${connector.name} (${connector.letter})`, isCorrect: false },
-      ]),
+      breakerLetterId: breakerId,
+      explanation: `${breakerLetter.name} doesn\u2019t connect forward \u2014 it breaks the chain.`,
     });
   }
   return exercises;
