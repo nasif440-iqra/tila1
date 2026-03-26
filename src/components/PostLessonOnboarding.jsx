@@ -470,7 +470,7 @@ const styles = {
     textAlign: "center",
     background: "linear-gradient(180deg, var(--c-bg-warm) 0%, var(--c-bg) 100%)",
     borderRadius: 0,
-    padding: "40px 28px 36px",
+    padding: "20px 28px 36px",
     overflow: "hidden",
   },
   confirmPattern: {
@@ -495,12 +495,12 @@ const styles = {
   },
   confirmDiamondWrap: {
     position: "relative",
-    width: 120,
-    height: 120,
+    width: 100,
+    height: 100,
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: 28,
+    marginBottom: 20,
   },
   confirmDiamondGlow: {
     position: "absolute",
@@ -511,8 +511,8 @@ const styles = {
     pointerEvents: "none",
   },
   confirmDiamond: {
-    width: 100,
-    height: 100,
+    width: 84,
+    height: 84,
     background: "var(--c-primary)",
     borderRadius: 24,
     transform: "rotate(45deg)",
@@ -529,11 +529,11 @@ const styles = {
   },
   confirmHeadline: {
     fontFamily: "var(--font-heading)",
-    fontSize: 30,
+    fontSize: 26,
     fontWeight: 600,
     lineHeight: 1.35,
     color: "var(--c-text)",
-    marginBottom: 12,
+    marginBottom: 10,
     letterSpacing: "-0.01em",
   },
   confirmBody: {
@@ -549,7 +549,7 @@ const styles = {
     fontStyle: "italic",
     fontSize: 14,
     color: "var(--c-text-muted)",
-    marginBottom: 32,
+    marginBottom: 24,
   },
 
   btnDisabled: {
