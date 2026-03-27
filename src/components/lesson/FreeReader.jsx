@@ -11,21 +11,7 @@ export default function FreeReader({ exercise, onComplete }) {
   const [flowState, setFlowState] = useState(STATE_INITIAL);
   const [isLoading, setIsLoading] = useState(false);
 
-  async function handlePlayAudio() {
-    setIsLoading(true);
-    try {
-      await playGeneratedArabicAudio(exercise.ttsText);
-    } catch {
-      // Audio failure is non-blocking — still advance the flow
-    } finally {
-      setIsLoading(false);
-    }
-    if (flowState === STATE_INITIAL) {
-      setFlowState(STATE_HEARD);
-    }
-  }
-
-  async function handleHearAgain() {
+  async function playAudio() {
     setIsLoading(true);
     try {
       await playGeneratedArabicAudio(exercise.ttsText);
@@ -33,6 +19,13 @@ export default function FreeReader({ exercise, onComplete }) {
       // Audio failure is non-blocking
     } finally {
       setIsLoading(false);
+    }
+  }
+
+  async function handlePlayAudio() {
+    await playAudio();
+    if (flowState === STATE_INITIAL) {
+      setFlowState(STATE_HEARD);
     }
   }
 
@@ -46,7 +39,7 @@ export default function FreeReader({ exercise, onComplete }) {
 
   function handleHearItAgain() {
     setFlowState(STATE_RETRY);
-    handleHearAgain();
+    playAudio();
   }
 
   return (
@@ -250,7 +243,7 @@ export default function FreeReader({ exercise, onComplete }) {
 
           {/* "Hear again" — neutral */}
           <button
-            onClick={handleHearAgain}
+            onClick={playAudio}
             disabled={isLoading}
             style={{
               background: "#fff",
