@@ -56,7 +56,12 @@ export function getDb() {
   db.pragma("foreign_keys = ON");
 
   // Apply schema (CREATE IF NOT EXISTS — idempotent)
-  const schema = fs.readFileSync(SCHEMA_PATH, "utf8");
+  let schema;
+  try {
+    schema = fs.readFileSync(SCHEMA_PATH, "utf8");
+  } catch (err) {
+    throw new Error(`Failed to read schema file at ${SCHEMA_PATH}: ${err.message}`);
+  }
   db.exec(schema);
 
   return db;
