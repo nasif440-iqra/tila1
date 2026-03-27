@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { Icons } from "../Icons.jsx";
 import { motion, AnimatePresence } from "framer-motion";
 import useLessonHybrid from "./useLessonHybrid.js";
@@ -61,6 +61,12 @@ function ComprehensionExercise({ exercise, onComplete }) {
   const [isCorrect, setIsCorrect] = useState(null);
   const { prompt, displayArabic, options = [], targetId } = exercise;
 
+  const timerRef = useRef(null);
+
+  useEffect(() => {
+    return () => { clearTimeout(timerRef.current); };
+  }, []);
+
   // Detect if options contain Arabic text (unicode range check or optionMode)
   const hasArabicOptions = options.some(o => o.label && /[\u0600-\u06FF\uFE70-\uFEFF]/.test(o.label));
   const optCount = options.length;
@@ -81,7 +87,7 @@ function ComprehensionExercise({ exercise, onComplete }) {
     setIsCorrect(correct);
     if (correct) {
       sfxCorrect();
-      setTimeout(() => onComplete({ correct: true, selectedOption: option }), 850);
+      timerRef.current = setTimeout(() => onComplete({ correct: true, selectedOption: option }), 850);
     } else {
       sfxWrong();
       // Don't auto-advance — wait for "Got it" button
@@ -253,6 +259,12 @@ export default function LessonHybrid({
 }) {
   const hybrid = useLessonHybrid({ lesson, exercises, onComplete });
 
+  const advanceTimerRef = useRef(null);
+
+  useEffect(() => {
+    return () => { clearTimeout(advanceTimerRef.current); };
+  }, []);
+
   if (hybrid.phase === "summary") {
     return (
       <LessonSummary
@@ -285,7 +297,7 @@ export default function LessonHybrid({
       // "Got it" button on wrong) — advance immediately when onComplete fires
       hybrid.advance();
     } else if (isGuided || isBuildup) {
-      setTimeout(() => hybrid.advance(), 300);
+      advanceTimerRef.current = setTimeout(() => hybrid.advance(), 300);
     } else {
       hybrid.advance();
     }
