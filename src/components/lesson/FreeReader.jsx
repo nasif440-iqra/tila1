@@ -140,6 +140,7 @@ export default function FreeReader({ exercise, onComplete }) {
           transition={{ duration: 0.25, delay: 0.3 }}
           onClick={handlePlayAudio}
           disabled={isLoading}
+          aria-label="Hear the correct reading"
           style={{
             display: "flex",
             alignItems: "center",
@@ -160,7 +161,7 @@ export default function FreeReader({ exercise, onComplete }) {
             transition: "opacity 0.15s",
           }}
         >
-          <span style={{ fontSize: 18 }}>&#128266;</span>
+          <span aria-hidden="true" style={{ fontSize: 18 }}>&#128266;</span>
           <span>{isLoading ? "Loading..." : "Hear the correct reading"}</span>
         </motion.button>
       )}
@@ -177,6 +178,7 @@ export default function FreeReader({ exercise, onComplete }) {
           {/* "I read it right" — positive self-assessment */}
           <button
             onClick={handleReadItRight}
+            aria-label="I read it right"
             style={{
               background: "var(--c-primary-soft)",
               color: "var(--c-primary)",
@@ -192,13 +194,14 @@ export default function FreeReader({ exercise, onComplete }) {
               transition: "background 0.15s",
             }}
           >
-            &#10003; I read it right
+            <span aria-hidden="true">&#10003;</span> I read it right
           </button>
 
           {/* "Hear it again" — neutral */}
           <button
             onClick={handleHearItAgain}
             disabled={isLoading}
+            aria-label="Hear it again"
             style={{
               background: "#fff",
               color: "var(--c-text-soft)",
@@ -244,6 +247,7 @@ export default function FreeReader({ exercise, onComplete }) {
           <button
             onClick={playAudio}
             disabled={isLoading}
+            aria-label="Hear again"
             style={{
               background: "#fff",
               color: "var(--c-text-soft)",
@@ -260,12 +264,13 @@ export default function FreeReader({ exercise, onComplete }) {
               transition: "opacity 0.15s",
             }}
           >
-            {isLoading ? "Loading..." : "&#128266; Hear again"}
+            {isLoading ? "Loading..." : <><span aria-hidden="true">&#128266;</span> Hear again</>}
           </button>
 
           {/* "Got it now" — positive */}
           <button
             onClick={handleGotItNow}
+            aria-label="Got it now"
             style={{
               background: "var(--c-primary-soft)",
               color: "var(--c-primary)",
@@ -281,7 +286,7 @@ export default function FreeReader({ exercise, onComplete }) {
               transition: "background 0.15s",
             }}
           >
-            &#10003; Got it now
+            <span aria-hidden="true">&#10003;</span> Got it now
           </button>
         </motion.div>
       )}

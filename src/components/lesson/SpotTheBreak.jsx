@@ -122,6 +122,7 @@ export default function SpotTheBreak({ exercise, onComplete }) {
             <motion.button
               key={index}
               onClick={() => handleTap(index)}
+              aria-label={`Segment ${index + 1}: ${segment.arabic}`}
               animate={
                 shakeIndex === index
                   ? { x: [-4, 4, -4, 4, 0] }
@@ -183,6 +184,7 @@ export default function SpotTheBreak({ exercise, onComplete }) {
           {!isCorrect && (
             <button
               onClick={handleGotIt}
+              aria-label="Got it, continue"
               style={{
                 marginTop: 4,
                 padding: "8px 20px",

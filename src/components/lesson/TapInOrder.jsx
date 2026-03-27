@@ -73,6 +73,7 @@ export default function TapInOrder({ exercise, onComplete }) {
             <motion.button
               key={letter.id}
               onClick={() => handleTap(index)}
+              aria-label={`${letter.arabic}, tap ${index + 1} of ${letters.length}`}
               animate={
                 shakeIndex === index
                   ? { x: [-4, 4, -4, 4, 0] }

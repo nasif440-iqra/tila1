@@ -82,6 +82,7 @@ export default function GuidedReveal({ exercise, onComplete }) {
         <button
           className="hear-btn"
           onClick={() => playLetterAudio(letterId, "name")}
+          aria-label={`Hear ${letter ? letter.name : "letter"}`}
           style={{ marginTop: 2 }}
         >
           <Icons.Volume size={16} color="var(--c-primary)" />
@@ -297,6 +298,7 @@ export default function GuidedReveal({ exercise, onComplete }) {
       <button
         className="btn btn-primary"
         onClick={handleNext}
+        aria-label={isFullyRevealed ? "Continue to next exercise" : "Reveal next form"}
         style={{ width: "100%", marginTop: 4 }}
       >
         {isFullyRevealed ? "Continue" : "Next Form \u2192"}

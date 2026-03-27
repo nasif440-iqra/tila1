@@ -360,6 +360,7 @@ export default function BuildUpReader({ exercise, onComplete }) {
           className="hear-btn"
           onClick={handleHear}
           disabled={audioPlaying}
+          aria-label={hearLabel}
           style={{ opacity: audioPlaying ? 0.6 : 1 }}
         >
           <span className="hear-icon" />
@@ -370,6 +371,7 @@ export default function BuildUpReader({ exercise, onComplete }) {
         <motion.button
           className="btn btn-primary"
           onClick={handleNext}
+          aria-label={isFullWord ? "I can read it, continue" : "Next step"}
           whileTap={{ scale: 0.97 }}
           transition={{ type: "spring", stiffness: 400, damping: 25 }}
         >
