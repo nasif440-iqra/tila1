@@ -58,7 +58,7 @@ export default function BuildUpReader({ exercise, onComplete }) {
   function handleNext() {
     sfxTap();
     if (isFullWord) {
-      onComplete({ correct: true, targetId: segments[0]?.letterId });
+      onComplete({ correct: true, targetId: segments[segments.length - 1]?.letterId });
     } else {
       setStep(s => s + 1);
     }
