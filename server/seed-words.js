@@ -63,6 +63,25 @@ const db = getDb();
 let totalInserted = 0;
 let totalSkipped = 0;
 
+function validateWord(word, index, filename) {
+  const errors = [];
+  if (!word.arabic_text) errors.push("missing arabic_text");
+  if (!word.arabic_plain) errors.push("missing arabic_plain");
+  if (!word.transliteration) errors.push("missing transliteration");
+  if (!word.english_meaning) errors.push("missing english_meaning");
+  if (typeof word.surah_number !== "number" || word.surah_number < 1 || word.surah_number > 114)
+    errors.push(`invalid surah_number: ${word.surah_number}`);
+  if (typeof word.ayah_number !== "number" || word.ayah_number < 1)
+    errors.push(`invalid ayah_number: ${word.ayah_number}`);
+  if (typeof word.word_position !== "number" || word.word_position < 1)
+    errors.push(`invalid word_position: ${word.word_position}`);
+  if (errors.length > 0) {
+    console.warn(`  [${filename}] word[${index}]: ${errors.join(", ")}`);
+    return false;
+  }
+  return true;
+}
+
 for (const filePath of filesToSeed) {
   const filename = path.basename(filePath);
   console.log(`\nSeeding: ${filename}`);
@@ -86,8 +105,12 @@ for (const filePath of filesToSeed) {
 
   // Wrap in a transaction for speed
   const seedFile = db.transaction(() => {
-    for (const word of words) {
-      // Supply optional audio fields as null if absent
+    for (let i = 0; i < words.length; i++) {
+      const word = words[i];
+      if (!validateWord(word, i, filename)) {
+        fileSkipped++;
+        continue;
+      }
       const wordWithDefaults = {
         audio_word: null,
         audio_syllables: null,
@@ -97,11 +120,9 @@ for (const filePath of filesToSeed) {
         insertWord(db, wordWithDefaults);
         fileInserted++;
       } catch (err) {
-        // SQLITE_CONSTRAINT = duplicate — skip gracefully
         if (err.code === "SQLITE_CONSTRAINT_UNIQUE" || err.code === "SQLITE_CONSTRAINT") {
           fileSkipped++;
         } else {
-          // Unexpected error — re-throw so the transaction rolls back
           throw err;
         }
       }
