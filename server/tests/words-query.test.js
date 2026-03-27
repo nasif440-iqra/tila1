@@ -318,3 +318,37 @@ describe("queryWords", () => {
     expect(Array.isArray(words[0].audio_syllables)).toBe(true);
   });
 });
+
+// ── Schema CHECK constraints ───────────────────────────────────────────────
+
+describe("schema CHECK constraints", () => {
+  it("rejects surah_number < 1", () => {
+    const bad = { ...WORD_BISMI, surah_number: 0, word_position: 99 };
+    expect(() => insertWord(db, bad)).toThrow();
+  });
+
+  it("rejects surah_number > 114", () => {
+    const bad = { ...WORD_BISMI, surah_number: 115, word_position: 99 };
+    expect(() => insertWord(db, bad)).toThrow();
+  });
+
+  it("rejects ayah_number < 1", () => {
+    const bad = { ...WORD_BISMI, ayah_number: 0, word_position: 99 };
+    expect(() => insertWord(db, bad)).toThrow();
+  });
+
+  it("rejects word_position < 1", () => {
+    const bad = { ...WORD_BISMI, word_position: 0 };
+    expect(() => insertWord(db, bad)).toThrow();
+  });
+
+  it("rejects min_phase < 1", () => {
+    const bad = { ...WORD_BISMI, min_phase: 0, word_position: 99 };
+    expect(() => insertWord(db, bad)).toThrow();
+  });
+
+  it("rejects difficulty_tier < 1", () => {
+    const bad = { ...WORD_BISMI, difficulty_tier: 0, word_position: 99 };
+    expect(() => insertWord(db, bad)).toThrow();
+  });
+});
