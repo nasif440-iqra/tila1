@@ -19,7 +19,12 @@ const CACHEABLE_PATTERNS = [
 // Install: cache the app shell
 self.addEventListener("install", (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(APP_SHELL))
+    caches.open(CACHE_NAME).then((cache) =>
+      cache.addAll(APP_SHELL).catch((err) => {
+        console.warn("[SW] Failed to cache app shell:", err);
+        throw err; // Let install fail — old SW stays active
+      })
+    )
   );
   self.skipWaiting();
 });
@@ -49,8 +54,16 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // API calls: always go to network
+  // API calls: always go to network, with error fallback
   if (url.pathname.startsWith("/api/")) {
+    event.respondWith(
+      fetch(event.request).catch(() =>
+        new Response(JSON.stringify({ error: "Offline — network unavailable" }), {
+          status: 503,
+          headers: { "Content-Type": "application/json" },
+        })
+      )
+    );
     return;
   }
 

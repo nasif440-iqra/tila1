@@ -10,7 +10,10 @@ export function shuffle(a) {
   return r;
 }
 
-export function pickRandom(a) { return a[Math.floor(Math.random() * a.length)]; }
+export function pickRandom(a) {
+  if (!a || a.length === 0) return undefined;
+  return a[Math.floor(Math.random() * a.length)];
+}
 
 // Maps letter IDs to IDs they're commonly confused with
 export const SOUND_CONFUSION_MAP = {
@@ -121,9 +124,10 @@ export function getRuleDistractors(target, pool, cnt) {
 
 export function getDistractors(tid, pool, cnt) {
   const av = pool.filter(id => id !== tid);
-  if (av.length >= cnt) return shuffle(av).slice(0, cnt).map(id => getLetter(id));
-  const ex = ARABIC_LETTERS.filter(l => !pool.includes(l.id) && l.id !== tid).slice(0, cnt - av.length);
-  return shuffle([...av.map(id => getLetter(id)), ...ex]).slice(0, cnt);
+  if (av.length >= cnt) return shuffle(av).slice(0, cnt).map(id => getLetter(id)).filter(Boolean);
+  const needed = cnt - av.length;
+  const ex = ARABIC_LETTERS.filter(l => !pool.includes(l.id) && l.id !== tid).slice(0, needed);
+  return shuffle([...av.map(id => getLetter(id)), ...ex]).filter(Boolean).slice(0, cnt);
 }
 
 export function getConfusionDistractors(tid, pool, cnt) {
@@ -153,18 +157,33 @@ export function getConfusionDistractors(tid, pool, cnt) {
 export function makeOpts(letters, cid) {
   const seen = new Set();
   const u = letters.filter(l => { if (!l || seen.has(l.id)) return false; seen.add(l.id); return true; });
+  if (u.length < 2) {
+    const target = u.find(l => l.id === cid) || u[0];
+    if (target) {
+      const extra = shuffle(ARABIC_LETTERS.filter(l => !seen.has(l.id))).slice(0, 2 - u.length);
+      u.push(...extra);
+    }
+  }
   return shuffle(u.map(l => ({ id: l.id, label: l.letter, isCorrect: l.id === cid })));
 }
 
 export function makeNameOpts(letters, cid) {
   const seen = new Set();
   const u = letters.filter(l => { if (!l || seen.has(l.id)) return false; seen.add(l.id); return true; });
+  if (u.length < 2) {
+    const extra = shuffle(ARABIC_LETTERS.filter(l => !seen.has(l.id))).slice(0, 2 - u.length);
+    u.push(...extra);
+  }
   return shuffle(u.map(l => ({ id: l.id, label: l.name, isCorrect: l.id === cid })));
 }
 
 export function makeSoundOpts(letters, cid) {
   const seen = new Set();
   const u = letters.filter(l => { if (!l || seen.has(l.id)) return false; seen.add(l.id); return true; });
+  if (u.length < 2) {
+    const extra = shuffle(ARABIC_LETTERS.filter(l => !seen.has(l.id))).slice(0, 2 - u.length);
+    u.push(...extra);
+  }
   return shuffle(u.map(l => ({ id: l.id, label: `"${l.transliteration}"`, sublabel: l.soundHint, isCorrect: l.id === cid })));
 }
 

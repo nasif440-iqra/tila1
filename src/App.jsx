@@ -254,10 +254,10 @@ export default function App() {
         </LessonErrorBoundary>
       )}
       {screen === "progress" && <ProgressScreen progress={progress} completedLessonIds={completedLessonIds} onStartLesson={handleStartLesson} />}
-      {!["lesson", "returnHadith", "phaseComplete", "wirdIntroduction", "postLessonOnboarding"].includes(screen) && <div className="nav-bar">
-        <button className={`nav-item ${activeTab === "home" ? "active" : ""}`} onClick={() => setScreenRaw("home")}><Icons.Home size={22} color={activeTab === "home" ? "var(--c-primary)" : "var(--c-text-muted)"} /><span>Home</span></button>
-        <button className={`nav-item ${activeTab === "progress" ? "active" : ""}`} onClick={() => setScreenRaw("progress")}><Icons.Chart size={22} color={activeTab === "progress" ? "var(--c-primary)" : "var(--c-text-muted)"} /><span>Progress</span></button>
-      </div>}
+      {!["lesson", "returnHadith", "phaseComplete", "wirdIntroduction", "postLessonOnboarding"].includes(screen) && <nav className="nav-bar" aria-label="Main navigation">
+        <button className={`nav-item ${activeTab === "home" ? "active" : ""}`} onClick={() => setScreenRaw("home")} aria-label="Home" aria-current={activeTab === "home" ? "page" : undefined}><Icons.Home size={22} color={activeTab === "home" ? "var(--c-primary)" : "var(--c-text-muted)"} /><span>Home</span></button>
+        <button className={`nav-item ${activeTab === "progress" ? "active" : ""}`} onClick={() => setScreenRaw("progress")} aria-label="Progress" aria-current={activeTab === "progress" ? "page" : undefined}><Icons.Chart size={22} color={activeTab === "progress" ? "var(--c-primary)" : "var(--c-text-muted)"} /><span>Progress</span></button>
+      </nav>}
     </div>
   );
 }

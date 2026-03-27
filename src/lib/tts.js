@@ -74,8 +74,12 @@ async function fetchTtsAudio(normalizedText) {
  */
 export async function playGeneratedArabicAudio(text) {
   // Normalize to NFC so cache keys are consistent with the server
-  const normalizedText = text?.normalize("NFC");
-  if (!normalizedText || normalizedText.trim().length === 0) {
+  if (!text || typeof text !== "string") {
+    console.warn("[TTS] called with empty text");
+    return false;
+  }
+  const normalizedText = text.normalize("NFC");
+  if (normalizedText.trim().length === 0) {
     console.warn("[TTS] called with empty text");
     return false;
   }
@@ -102,8 +106,6 @@ export async function playGeneratedArabicAudio(text) {
 
     audio.addEventListener("ended", () => {
       if (currentAudio === audio) currentAudio = null;
-      URL.revokeObjectURL(blobUrl);
-      audioCache.delete(normalizedText);
     });
     audio.addEventListener("error", () => {
       console.error("[TTS] audio element error:", audio.error?.message);

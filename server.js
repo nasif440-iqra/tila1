@@ -28,17 +28,16 @@ const TTS_PITCH = 0;
 // --- Startup diagnostics ---
 console.log("[Server] dotenv loaded — checking environment...");
 const _credPath = process.env.GOOGLE_APPLICATION_CREDENTIALS;
-console.log("[Server] GOOGLE_APPLICATION_CREDENTIALS =", _credPath || "(not set)");
+console.log("[Server] GOOGLE_APPLICATION_CREDENTIALS:", _credPath ? "(set)" : "(not set)");
 if (_credPath) {
   const _absPath = path.isAbsolute(_credPath) ? _credPath : path.resolve(__dirname, _credPath);
   const _exists = fs.existsSync(_absPath);
-  console.log("[Server] Resolved credential path:", _absPath);
   console.log("[Server] Credential file exists:", _exists);
   if (!_exists) {
-    console.error("[Server] ⚠ Credential file NOT FOUND — TTS will fail!");
+    console.error("[Server] Credential file NOT FOUND — TTS will fail!");
   }
 } else {
-  console.warn("[Server] ⚠ No GOOGLE_APPLICATION_CREDENTIALS set — TTS will rely on ADC or fail.");
+  console.warn("[Server] No GOOGLE_APPLICATION_CREDENTIALS set — TTS will rely on ADC or fail.");
 }
 
 const app = express();
@@ -128,10 +127,9 @@ async function initTTS() {
   if (credPath && !path.isAbsolute(credPath)) {
     credPath = path.resolve(__dirname, credPath);
     process.env.GOOGLE_APPLICATION_CREDENTIALS = credPath;
-    console.log("[TTS Server] Resolved relative credential path to:", credPath);
   }
   if (credPath && !fs.existsSync(credPath)) {
-    console.error(`[TTS Server] GOOGLE_APPLICATION_CREDENTIALS points to missing file: ${credPath}`);
+    console.error("[TTS Server] GOOGLE_APPLICATION_CREDENTIALS points to a missing file");
     ttsClient = false;
     ttsAvailable = false;
     return false;
@@ -204,7 +202,7 @@ app.get("/api/tts", ttsLimiter, async (req, res) => {
     const stat = fs.statSync(cachePath);
     console.log(`[TTS] cache HIT: "${text}" → ${path.basename(cachePath)} (${stat.size} bytes)`);
     res.setHeader("Content-Type", "audio/mpeg");
-    res.setHeader("Cache-Control", "no-store");
+    res.setHeader("Cache-Control", "public, max-age=604800, immutable");
     const stream = fs.createReadStream(cachePath);
     stream.on("error", (err) => {
       console.error("[TTS] cache read error:", err.message);
@@ -247,12 +245,12 @@ app.get("/api/tts", ttsLimiter, async (req, res) => {
     console.log(`[TTS] synth OK: ${audioBuffer.length} bytes`);
 
     // Cache to disk for future requests, then prune if needed
-    fs.writeFileSync(cachePath, audioBuffer);
+    await fs.promises.writeFile(cachePath, audioBuffer);
     pruneCache();
     console.log(`[TTS] cached: "${text}" → ${path.basename(cachePath)}`);
 
     res.setHeader("Content-Type", "audio/mpeg");
-    res.setHeader("Cache-Control", "no-store");
+    res.setHeader("Cache-Control", "public, max-age=604800, immutable");
     res.send(audioBuffer);
   } catch (err) {
     console.error(`[TTS] Google Cloud TTS error for "${text}":`, err);

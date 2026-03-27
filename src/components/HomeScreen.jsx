@@ -47,6 +47,7 @@ function ReviewCard({ reviewPlan, dueLetters, isUrgent, onStart }) {
           {!isUrgent && (
             <button
               onClick={onStart}
+              aria-label="Start letter review session"
               style={{
                 background: "transparent", color: "var(--c-primary)",
                 borderRadius: 12, padding: "10px 16px", border: "1.5px solid var(--c-primary)",
@@ -62,6 +63,7 @@ function ReviewCard({ reviewPlan, dueLetters, isUrgent, onStart }) {
           <button
             onClick={onStart}
             className="btn btn-primary"
+            aria-label="Start urgent letter review session"
             style={{ width: "100%", fontSize: 14, padding: "14px 20px" }}
           >
             Start review
@@ -137,7 +139,7 @@ export default function HomeScreen({ progress, mastery, completedLessonIds, less
   for (let i = 0; i < LESSONS.length; i++) {
     const l = LESSONS[i];
     const done = completedLessonIds.includes(l.id);
-    const isCurrent = l.id === currentLesson.id;
+    const isCurrent = l.id === currentLesson?.id;
     if (done || isCurrent) {
       windowEnd = i + 1;
       lockedCount = 0;
@@ -302,7 +304,7 @@ export default function HomeScreen({ progress, mastery, completedLessonIds, less
           <div style={{ display: "flex", flexDirection: "column", gap: 44, position: "relative", zIndex: 1, paddingTop: 8, paddingBottom: 8 }}>
             {windowLessons.map((lesson, i) => {
               const complete = isComplete(lesson);
-              const isCurrent = lesson.id === currentLesson.id;
+              const isCurrent = lesson.id === currentLesson?.id;
               const globalIdx = windowStart + i;
               const unlocked = isLessonUnlocked(globalIdx, completedLessonIds, mastery?.entities, today);
               const locked = !complete && !isCurrent && !unlocked;
