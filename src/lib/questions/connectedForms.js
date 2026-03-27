@@ -216,7 +216,10 @@ function buildHarakatReviewQuestion(letterId) {
   };
 }
 
-// Modules that should NOT receive review questions
+// Modules that use special exercise formats incompatible with standard review questions:
+// 4.0 = RTL introduction (tap_in_order + comprehension only)
+// 4.18 = Spot the Break (spot_the_break exercises only)
+// 4.20 = Mastery Check (comprehension-only random sampling of all 28 letters)
 const NO_REVIEW_MODULES = new Set(["4.0", "4.18", "4.20"]);
 
 function generateRTLExercises() {
@@ -260,6 +263,7 @@ function generateSpotTheBreakExercises(lesson) {
   ).map(Number);
 
   const exercises = [];
+  // Limit to 3 breaker exercises per lesson to keep lesson length manageable (~2 min target)
   const breakersToUse = shuffle(breakerIds).slice(0, 3);
   for (const breakerId of breakersToUse) {
     const breakerLetter = getLetter(breakerId);
@@ -316,6 +320,7 @@ function generateMixedRetrievalExercises(lesson) {
 
 function generateMasteryCheckExercises() {
   const allIds = Array.from({ length: 28 }, (_, i) => i + 1);
+  // Sample 12 of 28 letters for the mastery check — covers ~43% for a representative snapshot
   const sampled = shuffle(allIds).slice(0, 12);
   return sampled.map(letterId => {
     const cf = getConnectedForms(letterId);
