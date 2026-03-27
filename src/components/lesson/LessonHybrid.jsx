@@ -32,6 +32,28 @@ const STAGE_STYLES = {
   },
 };
 
+const STAGGER_VARIANTS = { show: { transition: { staggerChildren: 0.07 } } };
+
+const OPTION_VARIANTS = {
+  hidden: { opacity: 0, y: 16 },
+  show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 28 } },
+};
+
+const HOVER_ACTIVE = { scale: 1.02, borderColor: "var(--c-primary)", transition: { type: "spring", stiffness: 400, damping: 30 } };
+const TAP_ACTIVE = { scale: 0.94 };
+
+const CORRECT_ANIMATION = {
+  animate: { backgroundColor: ["var(--c-bg-card)", "var(--c-primary-soft)", "var(--c-primary-soft)"], scale: [1, 1.04, 1] },
+  transition: { duration: 0.4, times: [0, 0.3, 1] },
+};
+
+const WRONG_ANIMATION = {
+  animate: { x: [-6, 6, -5, 5, -3, 3, 0] },
+  transition: { duration: 0.4, ease: "easeOut" },
+};
+
+const NEUTRAL_TRANSITION = { transition: { type: "spring", stiffness: 400, damping: 25 } };
+
 function StageIndicator({ stage }) {
   const label = STAGE_LABELS[stage] ?? "Learning";
   const styles = STAGE_STYLES[stage] ?? STAGE_STYLES.guided;
@@ -134,7 +156,7 @@ function ComprehensionExercise({ exercise, onComplete }) {
         {prompt}
       </p>
       <motion.div
-        variants={{ show: { transition: { staggerChildren: 0.07 } } }}
+        variants={STAGGER_VARIANTS}
         initial="hidden"
         animate="show"
         style={gridStyle}
@@ -153,21 +175,10 @@ function ComprehensionExercise({ exercise, onComplete }) {
           return (
             <motion.button
               key={option.id}
-              variants={{
-                hidden: { opacity: 0, y: 16 },
-                show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 28 } },
-              }}
-              whileHover={!answered ? { scale: 1.02, borderColor: "var(--c-primary)", transition: { type: "spring", stiffness: 400, damping: 30 } } : undefined}
-              whileTap={!answered ? { scale: 0.94 } : undefined}
-              {...(isSelectedCorrect ? {
-                animate: { backgroundColor: ["var(--c-bg-card)", "var(--c-primary-soft)", "var(--c-primary-soft)"], scale: [1, 1.04, 1] },
-                transition: { duration: 0.4, times: [0, 0.3, 1] },
-              } : isSelectedWrong ? {
-                animate: { x: [-6, 6, -5, 5, -3, 3, 0] },
-                transition: { duration: 0.4, ease: "easeOut" },
-              } : {
-                transition: { type: "spring", stiffness: 400, damping: 25 },
-              })}
+              variants={OPTION_VARIANTS}
+              whileHover={!answered ? HOVER_ACTIVE : undefined}
+              whileTap={!answered ? TAP_ACTIVE : undefined}
+              {...(isSelectedCorrect ? CORRECT_ANIMATION : isSelectedWrong ? WRONG_ANIMATION : NEUTRAL_TRANSITION)}
               className={cls}
               onClick={() => handleSelect(option)}
               disabled={answered}
